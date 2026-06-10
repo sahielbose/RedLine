@@ -1,0 +1,51 @@
+{
+  "count": 3,
+  "total_pages": 1,
+  "results": [
+    {
+      "document_number": "2026-09001",
+      "title": "Negative Option Rule; Renewed Rulemaking on Subscription Cancellation",
+      "abstract": "The Commission requests public comment on a renewed rulemaking that would require sellers of auto-renewing subscriptions to provide a simple online cancellation path and clearer pre-purchase disclosures. The proposal follows a prior rule that a federal appeals court set aside on procedural grounds.",
+      "type": "Proposed Rule",
+      "publication_date": "2026-06-09",
+      "comments_close_on": "2026-08-10",
+      "html_url": "https://www.federalregister.gov/documents/2026/06/09/2026-09001/negative-option-rule-renewed-rulemaking-on-subscription-cancellation",
+      "action": "Advance notice of proposed rulemaking; request for comment.",
+      "regulation_id_numbers": ["3084-AB99"],
+      "agencies": [
+        { "name": "Federal Trade Commission" }
+      ],
+      "topics": ["Trade practices", "Consumer protection"]
+    },
+    {
+      "document_number": "2026-08550",
+      "title": "Food Traceability Recordkeeping Requirements; Compliance Date Extension",
+      "abstract": "This final rule extends the compliance date for additional traceability recordkeeping for entities that manufacture, process, pack, or hold foods on the agency traceability list. Firms that only serve prepared food to consumers remain largely outside the rule's scope.",
+      "type": "Rule",
+      "publication_date": "2026-06-05",
+      "comments_close_on": null,
+      "html_url": "https://www.federalregister.gov/documents/2026/06/05/2026-08550/food-traceability-recordkeeping-requirements-compliance-date-extension",
+      "action": "Final rule; compliance date extension.",
+      "regulation_id_numbers": ["0910-AI47"],
+      "agencies": [
+        { "name": "Food and Drug Administration" }
+      ],
+      "topics": ["Food labeling", "Foods", "Reporting and recordkeeping requirements"]
+    },
+    {
+      "document_number": "2026-08400",
+      "title": "Suspension of Duty-Free De Minimis Treatment for Low-Value Imports",
+      "abstract": "This notice describes the suspension of duty-free treatment for low-value shipments, so that affected imports now require full customs entry and payment of applicable duties. The change reaches small e-commerce sellers and hardware importers that previously relied on the low-value exemption.",
+      "type": "Notice",
+      "publication_date": "2026-06-02",
+      "comments_close_on": null,
+      "html_url": "https://www.federalregister.gov/documents/2026/06/02/2026-08400/suspension-of-duty-free-de-minimis-treatment-for-low-value-imports",
+      "action": "Notice of suspension.",
+      "regulation_id_numbers": [],
+      "agencies": [
+        { "name": "U.S. Customs and Border Protection" }
+      ],
+      "topics": ["Customs duties and inspection", "Imports"]
+    }
+  ]
+}

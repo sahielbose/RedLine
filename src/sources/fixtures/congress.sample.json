@@ -1,0 +1,80 @@
+{
+  "bills": [
+    {
+      "congress": 119,
+      "type": "HR",
+      "number": "1234",
+      "title": "A bill to set a federal floor for worker classification when companies use 1099 contractors.",
+      "updateDate": "2026-06-09T14:22:05Z",
+      "updateDateIncludingText": "2026-06-09T14:22:05Z",
+      "introducedDate": "2026-02-18",
+      "originChamber": "House",
+      "latestAction": {
+        "actionDate": "2026-06-08",
+        "actionTime": "11:47:00",
+        "text": "Passed the House by a recorded vote and presented to the Senate for consideration."
+      },
+      "sponsors": [
+        {
+          "bioguideId": "X000001",
+          "fullName": "Rep. Paraphrase, A. (D-CA-12)",
+          "firstName": "A.",
+          "lastName": "Paraphrase",
+          "party": "D",
+          "state": "CA",
+          "district": 12
+        }
+      ],
+      "policyArea": { "name": "Labor and Employment" },
+      "subjects": {
+        "policyArea": { "name": "Labor and Employment" },
+        "legislativeSubjects": [
+          { "name": "Employment and training programs" },
+          { "name": "Worker classification" }
+        ]
+      },
+      "textVersions": {
+        "url": "https://api.congress.gov/v3/bill/119/hr/1234/text?format=json"
+      },
+      "url": "https://api.congress.gov/v3/bill/119/hr/1234?format=json"
+    },
+    {
+      "congress": 119,
+      "type": "SRES",
+      "number": "88",
+      "title": "A resolution expressing the sense of the Senate on small-business regulatory burden.",
+      "updateDate": "2026-06-10T09:05:00Z",
+      "updateDateIncludingText": "2026-06-10T09:05:00Z",
+      "introducedDate": "2026-05-30",
+      "originChamber": "Senate",
+      "latestAction": {
+        "actionDate": "2026-05-30",
+        "text": "Introduced in the Senate and referred to the Committee on Small Business and Entrepreneurship."
+      },
+      "sponsors": [
+        {
+          "bioguideId": "X000002",
+          "fullName": "Sen. Example, B. (R-TX)",
+          "firstName": "B.",
+          "lastName": "Example",
+          "party": "R",
+          "state": "TX",
+          "district": null
+        }
+      ],
+      "policyArea": { "name": "Commerce" },
+      "subjects": {
+        "policyArea": { "name": "Commerce" },
+        "legislativeSubjects": [{ "name": "Small business" }]
+      },
+      "textVersions": {
+        "url": "https://api.congress.gov/v3/bill/119/sres/88/text?format=json"
+      },
+      "url": "https://api.congress.gov/v3/bill/119/sres/88?format=json"
+    }
+  ],
+  "pagination": {
+    "count": 2,
+    "next": null
+  }
+}

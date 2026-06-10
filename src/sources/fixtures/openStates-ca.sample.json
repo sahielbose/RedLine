@@ -1,0 +1,119 @@
+{
+  "_comment": "Paraphrased, trimmed Open States / Plural v3 GET /bills response for jurisdiction=California (sort=updated_desc, include=abstracts,sponsorships,actions). OUR paraphrased copy — no verbatim API/bill text reproduced beyond short factual identifiers. Used only as a hermetic test fixture (injected via fetchImpl). Field shapes mirror the live v3 schema documented in REDLINE_MASTER_SPEC.md §5.",
+  "results": [
+    {
+      "id": "ocd-bill/11111111-1111-1111-1111-111111111111",
+      "session": "20252026",
+      "jurisdiction": {
+        "id": "ocd-jurisdiction/country:us/state:ca/government",
+        "name": "California",
+        "classification": "state"
+      },
+      "from_organization": {
+        "id": "ocd-organization/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        "name": "Assembly",
+        "classification": "lower"
+      },
+      "identifier": "AB 123",
+      "title": "Worker classification and auto-renewing subscription disclosures.",
+      "classification": ["bill"],
+      "subject": ["Labor", "Consumer protection"],
+      "abstracts": [
+        {
+          "abstract": "Would set rules for classifying gig workers and require clearer disclosures before an auto-renewing subscription charges a customer.",
+          "note": ""
+        }
+      ],
+      "latest_action_date": "2026-06-03",
+      "latest_action_description": "Read second time. Ordered to third reading.",
+      "sponsorships": [
+        {
+          "name": "A. Rivera",
+          "classification": "primary",
+          "entity_type": "person",
+          "primary": true,
+          "person": { "id": "ocd-person/cccccccc-cccc-cccc-cccc-cccccccccccc", "name": "A. Rivera" }
+        },
+        {
+          "name": "M. Chen",
+          "classification": "cosponsor",
+          "entity_type": "person",
+          "primary": false,
+          "person": { "id": "ocd-person/dddddddd-dddd-dddd-dddd-dddddddddddd", "name": "M. Chen" }
+        }
+      ],
+      "actions": [
+        {
+          "description": "Introduced and read first time.",
+          "date": "2026-01-08",
+          "classification": ["introduction", "reading-1"],
+          "order": 0
+        },
+        {
+          "description": "Read second time. Ordered to third reading.",
+          "date": "2026-06-03",
+          "classification": ["reading-2"],
+          "order": 1
+        }
+      ],
+      "openstates_url": "https://openstates.org/ca/bills/20252026/AB123/",
+      "first_action_date": "2026-01-08",
+      "created_at": "2026-01-08T18:04:11.000000+00:00",
+      "updated_at": "2026-06-04T02:15:33.000000+00:00"
+    },
+    {
+      "id": "ocd-bill/22222222-2222-2222-2222-222222222222",
+      "session": "20252026",
+      "jurisdiction": {
+        "id": "ocd-jurisdiction/country:us/state:ca/government",
+        "name": "California",
+        "classification": "state"
+      },
+      "from_organization": {
+        "id": "ocd-organization/bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+        "name": "Senate",
+        "classification": "upper"
+      },
+      "identifier": "SCR 45",
+      "title": "Relative to small business awareness week.",
+      "classification": ["resolution"],
+      "subject": [],
+      "abstracts": [],
+      "latest_action_date": "2026-05-29",
+      "latest_action_description": "Chaptered by Secretary of State.",
+      "sponsorships": [
+        {
+          "name": "J. Okoro",
+          "classification": "primary",
+          "entity_type": "person",
+          "primary": true,
+          "person": { "id": "ocd-person/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee", "name": "J. Okoro" }
+        }
+      ],
+      "actions": [
+        {
+          "description": "Introduced.",
+          "date": "2026-04-10",
+          "classification": ["introduction"],
+          "order": 0
+        },
+        {
+          "description": "Chaptered by Secretary of State.",
+          "date": "2026-05-29",
+          "classification": ["became-law"],
+          "order": 1
+        }
+      ],
+      "openstates_url": "https://openstates.org/ca/bills/20252026/SCR45/",
+      "first_action_date": "2026-04-10",
+      "created_at": "2026-04-10T16:22:00.000000+00:00",
+      "updated_at": "2026-05-29T21:40:02.000000+00:00"
+    }
+  ],
+  "pagination": {
+    "per_page": 20,
+    "page": 1,
+    "max_page": 1,
+    "total_items": 2
+  }
+}
