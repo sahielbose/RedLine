@@ -96,6 +96,10 @@ export interface NormalizedItem {
   jurisdiction: string;
   type: ItemType;
   identifier: string | null;
+  /** Issuing agency token (e.g. "Food and Drug Administration"), when the source
+   *  has one — the strongest Stage-0 signal for rules. classifyItem reads this.
+   *  Legislatures (Congress/Open States) leave it null; bills tag via subjects/text. */
+  agency?: string | null;
   title: string;
   summary: string | null;
   full_text_url: string | null;
