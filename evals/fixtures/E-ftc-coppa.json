@@ -1,0 +1,12 @@
+{
+  "id": "E-ftc-coppa",
+  "source": "federal_register",
+  "agency": "FTC",
+  "jurisdiction": "us",
+  "type": "final_rule",
+  "identifier": "FTC-COPPA-Amendments",
+  "title": "Children's Online Privacy Protection Rule (COPPA) Amendments",
+  "summary": "The FTC amends the COPPA rule governing how online services collect, use, and disclose personal information from children under 13, tightening consent and data-retention obligations. It binds operators that knowingly collect data from children under 13.",
+  "full_text": "The Federal Trade Commission amends the Children's Online Privacy Protection Rule. The amendments update the requirements for obtaining verifiable parental consent before collecting personal information from a child under 13, add data-retention limits, and expand the definition of personal information. The rule applies to operators of websites and online services directed to children or that have actual knowledge they collect children's personal information.",
+  "categories": ["software", "data_privacy"]
+}

@@ -1,0 +1,31 @@
+{
+  "id": "profile-ecom-goods",
+  "org_id": "org-ecom-goods",
+  "business_types": ["goods"],
+  "jurisdictions": ["us", "us-tx"],
+  "attributes": {
+    "employees": 8,
+    "has_w2": true,
+    "has_1099_contractors": false,
+    "sells_subscription": false,
+    "imports_goods": true,
+    "sells_physical_goods": true,
+    "sells_via_marketplace": true,
+    "serves_food": false,
+    "food_supply_chain_role": null,
+    "collects_customer_data_online": true,
+    "data_from_children_under_13": false
+  },
+  "subscribed_categories": [
+    "wages_hours",
+    "leave_benefits",
+    "classification_scheduling",
+    "licensing_registration",
+    "taxes",
+    "data_privacy",
+    "workplace_safety",
+    "accessibility",
+    "goods"
+  ],
+  "concern_text": "E-commerce retailer that imports finished consumer goods and sells them direct-to-consumer and through third-party marketplaces. Exposed to import duties/customs (de minimis/tariffs), marketplace-seller verification rules, sales-tax nexus, and product labeling. Does NOT sell subscriptions, handle food, or build RF hardware, and does not collect data from children under 13."
+}

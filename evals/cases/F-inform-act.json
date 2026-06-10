@@ -1,0 +1,10 @@
+{
+  "item": "F-inform-act",
+  "note": "Expansion: INFORM Act flags for the e-commerce seller that uses third-party marketplaces; noise elsewhere.",
+  "expectations": {
+    "saas-remote": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "ecom-goods": { "min": 4, "max": 4, "band": "High", "flag": true },
+    "food-cpg": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "hardware-maker": { "min": 0, "max": 1, "band": "Low", "flag": false }
+  }
+}

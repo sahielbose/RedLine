@@ -1,0 +1,12 @@
+{
+  "id": "B-ftc-click-to-cancel",
+  "source": "federal_register",
+  "agency": "FTC",
+  "jurisdiction": "us",
+  "type": "proposed_rule",
+  "identifier": "FTC-NegOption-ANPRM",
+  "title": "Negative Option Rule: Click-to-Cancel and Recurring Subscription Requirements",
+  "summary": "After the 2024 click-to-cancel rule was vacated on appeal, the FTC has restarted its negative-option rulemaking governing how businesses enroll consumers in and let them cancel auto-renewing subscriptions. ROSCA and state auto-renewal laws continue to apply in the interim.",
+  "full_text": "The Federal Trade Commission is initiating a renewed rulemaking on negative option marketing and automatic renewal programs following the appellate decision vacating the 2024 rule. The Commission seeks comment on requirements that sellers obtain express informed consent before charging for a recurring subscription and provide a simple cancellation mechanism, often described as click-to-cancel. The Restore Online Shoppers' Confidence Act and numerous state automatic renewal statutes remain in effect during this rulemaking.",
+  "categories": ["software"]
+}

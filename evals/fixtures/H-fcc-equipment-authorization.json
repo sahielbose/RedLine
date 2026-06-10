@@ -1,0 +1,12 @@
+{
+  "id": "H-fcc-equipment-authorization",
+  "source": "federal_register",
+  "agency": "FCC",
+  "jurisdiction": "us",
+  "type": "final_rule",
+  "identifier": "FCC-Equipment-Authorization",
+  "title": "Equipment Authorization and the Covered List for Radiofrequency Devices",
+  "summary": "The FCC updates its equipment-authorization rules and prohibits authorization of radiofrequency devices that include components on the Covered List, affecting manufacturers of connected and wireless hardware. It binds makers seeking FCC authorization for RF devices.",
+  "full_text": "The Federal Communications Commission amends its equipment authorization procedures for radiofrequency devices and implements restrictions tied to the Covered List of communications equipment that poses national security risks. The rule prohibits the authorization of certain radiofrequency devices that contain covered components and updates the testing and certification requirements. Manufacturers seeking authorization to market RF devices in the United States must ensure their products comply.",
+  "categories": ["hardware"]
+}

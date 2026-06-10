@@ -1,0 +1,12 @@
+{
+  "item": "C-import-de-minimis",
+  "anchor": true,
+  "headline": true,
+  "note": "THE HEADLINE (spec §11 C, CLAUDE.md DoD): same rule flags Critical/High for goods + hardware importers, filtered out for SaaS and food.",
+  "expectations": {
+    "saas-remote": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "ecom-goods": { "min": 5, "max": 5, "band": "Critical", "flag": true },
+    "food-cpg": { "min": 0, "max": 2, "band": "Low", "flag": false },
+    "hardware-maker": { "min": 5, "max": 5, "band": "Critical", "flag": true }
+  }
+}

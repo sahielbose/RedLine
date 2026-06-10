@@ -1,0 +1,12 @@
+{
+  "id": "K-bank-capital",
+  "source": "federal_register",
+  "agency": "Federal Reserve",
+  "jurisdiction": "us",
+  "type": "proposed_rule",
+  "identifier": "FRB-Capital-Requirements",
+  "title": "Regulatory Capital Requirements for Large Banking Organizations",
+  "summary": "Federal banking regulators propose revisions to the risk-based capital framework that large banking organizations must hold against their assets. The proposal applies to bank holding companies and depository institutions above a size threshold.",
+  "full_text": "The Board of Governors of the Federal Reserve System, together with the other federal banking agencies, proposes revisions to the risk-based regulatory capital requirements applicable to large banking organizations. The proposal would change how covered banking organizations calculate risk-weighted assets and the amount of regulatory capital they must maintain. It applies to bank holding companies and insured depository institutions that exceed the specified asset threshold.",
+  "categories": []
+}

@@ -1,0 +1,11 @@
+{
+  "item": "B-ftc-click-to-cancel",
+  "anchor": true,
+  "note": "FTC negative-option (software). Flag only for the subscription SaaS; noise for the rest.",
+  "expectations": {
+    "saas-remote": { "min": 5, "max": 5, "band": "Critical", "flag": true },
+    "ecom-goods": { "min": 0, "max": 2, "band": "Low", "flag": false },
+    "food-cpg": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "hardware-maker": { "min": 0, "max": 1, "band": "Low", "flag": false }
+  }
+}

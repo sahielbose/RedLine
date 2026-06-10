@@ -1,0 +1,32 @@
+{
+  "id": "profile-hardware-maker",
+  "org_id": "org-hardware-maker",
+  "business_types": ["hardware"],
+  "jurisdictions": ["us", "us-ny"],
+  "attributes": {
+    "employees": 25,
+    "has_w2": true,
+    "has_1099_contractors": false,
+    "sells_subscription": false,
+    "imports_goods": true,
+    "sells_physical_goods": true,
+    "sells_via_marketplace": false,
+    "serves_food": false,
+    "food_supply_chain_role": null,
+    "collects_customer_data_online": true,
+    "data_from_children_under_13": false
+  },
+  "subscribed_categories": [
+    "wages_hours",
+    "leave_benefits",
+    "classification_scheduling",
+    "licensing_registration",
+    "taxes",
+    "data_privacy",
+    "workplace_safety",
+    "accessibility",
+    "goods",
+    "hardware"
+  ],
+  "concern_text": "Connected-device maker that designs an RF hardware product, imports components and finished units, and sells direct-to-consumer. Exposed to import duties/customs (de minimis/tariffs), FCC equipment authorization, CPSC product safety, energy efficiency, and e-waste/right-to-repair. Does NOT sell subscriptions, handle food, or collect data from children under 13."
+}

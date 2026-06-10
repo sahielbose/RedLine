@@ -1,0 +1,11 @@
+{
+  "item": "A-beneficial-ownership",
+  "anchor": true,
+  "note": "Universal base item (CTA / FinCEN) — flag (monitor) for ALL four profiles.",
+  "expectations": {
+    "saas-remote": { "min": 3, "max": 4, "band": "Monitor", "flag": true },
+    "ecom-goods": { "min": 3, "max": 4, "band": "Monitor", "flag": true },
+    "food-cpg": { "min": 3, "max": 4, "band": "Monitor", "flag": true },
+    "hardware-maker": { "min": 3, "max": 4, "band": "Monitor", "flag": true }
+  }
+}

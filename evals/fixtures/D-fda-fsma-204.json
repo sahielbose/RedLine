@@ -1,0 +1,12 @@
+{
+  "id": "D-fda-fsma-204",
+  "source": "federal_register",
+  "agency": "FDA",
+  "jurisdiction": "us",
+  "type": "final_rule",
+  "identifier": "FDA-FSMA-204-Traceability",
+  "title": "FSMA Section 204 Food Traceability Rule: Additional Recordkeeping for Listed Foods",
+  "summary": "The FDA's FSMA 204 food traceability rule requires additional recordkeeping for those who manufacture, process, pack, or hold foods on the Food Traceability List; the compliance date was extended to July 2028. Operations that only serve food on-site are largely outside the rule's scope.",
+  "full_text": "This rule implements section 204 of the Food Safety Modernization Act and establishes additional traceability recordkeeping requirements for persons who manufacture, process, pack, or hold foods on the Food Traceability List. Covered entities must maintain records containing key data elements at critical tracking events along the supply chain. The compliance date has been extended from January 2026 to July 2028. Retail food establishments and restaurants that only serve food to consumers are generally not subject to the same traceability recordkeeping obligations.",
+  "categories": ["food"]
+}

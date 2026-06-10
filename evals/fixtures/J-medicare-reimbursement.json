@@ -1,0 +1,12 @@
+{
+  "id": "J-medicare-reimbursement",
+  "source": "federal_register",
+  "agency": "CMS",
+  "jurisdiction": "us",
+  "type": "proposed_rule",
+  "identifier": "CMS-IPPS-Update",
+  "title": "Medicare Inpatient Prospective Payment System: Hospital Reimbursement Rate Update",
+  "summary": "CMS proposes updates to the inpatient prospective payment rates that determine how much Medicare reimburses acute-care hospitals for inpatient stays. The proposal affects participating hospitals and health systems billing Medicare.",
+  "full_text": "The Centers for Medicare and Medicaid Services proposes to update the payment rates under the hospital inpatient prospective payment system for the upcoming fiscal year. The update adjusts the standardized amount used to calculate Medicare reimbursement to acute-care hospitals for inpatient discharges, along with related wage-index and quality-program provisions. The proposal applies to hospitals and health systems that participate in the Medicare program.",
+  "categories": []
+}

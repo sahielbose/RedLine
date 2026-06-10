@@ -1,0 +1,31 @@
+{
+  "id": "profile-saas-remote",
+  "org_id": "org-saas-remote",
+  "business_types": ["software"],
+  "jurisdictions": ["us", "us-ca"],
+  "attributes": {
+    "employees": 12,
+    "has_w2": true,
+    "has_1099_contractors": true,
+    "sells_subscription": true,
+    "imports_goods": false,
+    "sells_physical_goods": false,
+    "sells_via_marketplace": false,
+    "serves_food": false,
+    "food_supply_chain_role": null,
+    "collects_customer_data_online": true,
+    "data_from_children_under_13": false
+  },
+  "subscribed_categories": [
+    "wages_hours",
+    "leave_benefits",
+    "classification_scheduling",
+    "licensing_registration",
+    "taxes",
+    "data_privacy",
+    "workplace_safety",
+    "accessibility",
+    "software"
+  ],
+  "concern_text": "Fully-remote B2B SaaS in CA, 12 W-2 staff plus 1099 contractors, sells auto-renewing subscriptions, collects customer data online. Hurt by changes to subscription/cancellation rules, data privacy/breach notice, worker classification, overtime thresholds, mandated benefits. Does NOT sell physical goods, import, or handle food, and does not collect data from children under 13."
+}

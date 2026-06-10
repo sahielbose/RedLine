@@ -1,0 +1,10 @@
+{
+  "item": "E-ftc-coppa",
+  "note": "Expansion (verify before trusting): COPPA flags for SaaS ONLY if it collects data from children under 13. None of these profiles do, so all are Low.",
+  "expectations": {
+    "saas-remote": { "min": 0, "max": 2, "band": "Low", "flag": false },
+    "ecom-goods": { "min": 0, "max": 2, "band": "Low", "flag": false },
+    "food-cpg": { "min": 0, "max": 2, "band": "Low", "flag": false },
+    "hardware-maker": { "min": 0, "max": 2, "band": "Low", "flag": false }
+  }
+}

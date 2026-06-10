@@ -1,0 +1,12 @@
+{
+  "id": "C-import-de-minimis",
+  "source": "federal_register",
+  "agency": "CBP",
+  "jurisdiction": "us",
+  "type": "notice",
+  "identifier": "CBP-Section321-Suspension",
+  "title": "Suspension of De Minimis (Section 321) Duty-Free Treatment for Imported Goods",
+  "summary": "Executive action suspended the duty-free de minimis treatment for low-value imports, first for China and Hong Kong and then globally. All affected imports now owe duties and require a full customs entry, raising landed costs and compliance burden for businesses that import goods.",
+  "full_text": "By executive action implemented through U.S. Customs and Border Protection, the de minimis exemption under Section 321 of the Tariff Act, which had allowed shipments valued under eight hundred dollars to enter free of duty, is suspended. The suspension applied first to articles from China and Hong Kong and was later extended to apply globally. Shipments that previously qualified for de minimis must now be entered through a formal or informal customs entry and are subject to applicable tariffs and import duties.",
+  "categories": ["goods", "hardware"]
+}

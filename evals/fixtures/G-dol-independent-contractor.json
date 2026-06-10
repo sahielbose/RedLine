@@ -1,0 +1,12 @@
+{
+  "id": "G-dol-independent-contractor",
+  "source": "federal_register",
+  "agency": "DOL",
+  "jurisdiction": "us",
+  "type": "proposed_rule",
+  "identifier": "DOL-IC-Classification",
+  "title": "Employee or Independent Contractor Classification under the Fair Labor Standards Act",
+  "summary": "The Department of Labor proposes a revised standard for determining whether a worker is an employee or an independent contractor under the FLSA, affecting how businesses classify and pay 1099 contractors. Any business engaging independent contractors should reassess its arrangements.",
+  "full_text": "The Department of Labor proposes to revise its guidance on whether a worker is properly classified as an employee or an independent contractor under the Fair Labor Standards Act. The proposal adopts an economic-reality test weighing multiple factors to determine economic dependence. Businesses that engage independent contractors should review their worker classification and 1099 contractor relationships, because misclassification can create back-pay and overtime liability.",
+  "categories": ["classification_scheduling", "wages_hours"]
+}

@@ -1,0 +1,31 @@
+{
+  "id": "profile-food-cpg",
+  "org_id": "org-food-cpg",
+  "business_types": ["food"],
+  "jurisdictions": ["us", "us-ca"],
+  "attributes": {
+    "employees": 40,
+    "has_w2": true,
+    "has_1099_contractors": false,
+    "sells_subscription": false,
+    "imports_goods": true,
+    "sells_physical_goods": true,
+    "sells_via_marketplace": false,
+    "serves_food": true,
+    "food_supply_chain_role": "make_pack_hold",
+    "collects_customer_data_online": false,
+    "data_from_children_under_13": false
+  },
+  "subscribed_categories": [
+    "wages_hours",
+    "leave_benefits",
+    "classification_scheduling",
+    "licensing_registration",
+    "taxes",
+    "data_privacy",
+    "workplace_safety",
+    "accessibility",
+    "food"
+  ],
+  "concern_text": "Consumer packaged-food maker that manufactures, packs, and holds packaged foods and imports some ingredients and packaging. Exposed to FSMA food safety and traceability, food labeling, health permits, and import-input cost changes. Does NOT sell subscriptions, sell via third-party marketplaces, or build RF hardware."
+}

@@ -1,0 +1,12 @@
+{
+  "id": "F-inform-act",
+  "source": "federal_register",
+  "agency": "FTC",
+  "jurisdiction": "us",
+  "type": "final_rule",
+  "identifier": "FTC-INFORM-Consumers",
+  "title": "INFORM Consumers Act: Verification of High-Volume Third-Party Marketplace Sellers",
+  "summary": "Implements the INFORM Consumers Act, requiring online marketplaces to collect and verify identifying information from high-volume third-party sellers and disclose seller contact details to consumers. It reaches sellers operating on third-party marketplaces.",
+  "full_text": "This guidance implements the INFORM Consumers Act, which requires online marketplaces to collect, verify, and disclose certain information about high-volume third-party sellers. A high-volume third-party seller that meets the transaction thresholds must provide bank account, tax identification, and contact information to the marketplace, and certain seller contact information must be disclosed to consumers. The requirements apply to sellers that offer goods for sale through an online marketplace operated by a third party.",
+  "categories": ["goods"]
+}

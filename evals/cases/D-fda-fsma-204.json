@@ -1,0 +1,11 @@
+{
+  "item": "D-fda-fsma-204",
+  "anchor": true,
+  "note": "FDA FSMA 204 (food). Flag for the make/pack/hold food maker; filtered for everyone else.",
+  "expectations": {
+    "saas-remote": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "ecom-goods": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "food-cpg": { "min": 4, "max": 5, "band": "Critical", "flag": true },
+    "hardware-maker": { "min": 0, "max": 1, "band": "Low", "flag": false }
+  }
+}

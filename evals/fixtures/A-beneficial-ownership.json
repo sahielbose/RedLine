@@ -1,0 +1,12 @@
+{
+  "id": "A-beneficial-ownership",
+  "source": "federal_register",
+  "agency": "FinCEN",
+  "jurisdiction": "us",
+  "type": "final_rule",
+  "identifier": "FinCEN-BOI-IR",
+  "title": "Beneficial Ownership Information Reporting under the Corporate Transparency Act",
+  "summary": "FinCEN's interim final rule narrows beneficial-ownership reporting so that domestic U.S. entities are exempt and only foreign reporting companies must file; a final rule remains pending. Most incorporated businesses should monitor for the scope of the forthcoming final rule.",
+  "full_text": "This interim final rule revises the beneficial ownership information reporting requirements under the Corporate Transparency Act. The rule exempts entities formed under the law of a State from the definition of reporting company, so that domestic companies are not required to report beneficial ownership information at this time. Foreign reporting companies registered to do business in the United States remain subject to reporting. A final rule is pending and the scope of reporting companies may change.",
+  "categories": ["licensing_registration"]
+}

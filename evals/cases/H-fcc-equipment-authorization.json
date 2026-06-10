@@ -1,0 +1,10 @@
+{
+  "item": "H-fcc-equipment-authorization",
+  "note": "Expansion: FCC equipment authorization flags for the hardware maker only.",
+  "expectations": {
+    "saas-remote": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "ecom-goods": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "food-cpg": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "hardware-maker": { "min": 4, "max": 4, "band": "High", "flag": true }
+  }
+}
