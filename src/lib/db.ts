@@ -12,7 +12,14 @@ import { env } from "@/lib/env";
 import { schema } from "@db/schema";
 
 type Schema = typeof schema;
-type Database = NodePgDatabase<Schema>;
+export type Database = NodePgDatabase<Schema>;
+
+/**
+ * A query executor: the top-level Database OR a transaction handle. Functions
+ * that must run a mutation and its audit row atomically accept this, so callers
+ * can pass `tx` inside `db.transaction(async (tx) => …)`.
+ */
+export type DbExecutor = Database | Parameters<Parameters<Database["transaction"]>[0]>[0];
 
 /** Globals survive Next.js / tsx hot reloads so we reuse one pool. */
 const globalForDb = globalThis as unknown as {

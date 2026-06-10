@@ -51,9 +51,17 @@ _Live run deferred:_ "real rows land, a known recent rule appears" needs live AP
 (Docker/colima). The loop + upsert/diff/cursor semantics are proven against MemoryItemStore; the
 DrizzleItemStore integration test runs with `RUN_DB_TESTS=1` after `db:up && db:migrate`.
 
-## Phase 2 — Pipeline + evals  · _not started_
-Onboarding → profile; Stage 0/A/B wired to DB; log judgments; memo + citation verify + approval gate
-+ audit. Checkpoint: `npm run eval` green; profile switch re-scores correctly.
+## Phase 2 — Pipeline + evals  · _complete (hermetic); live DB gated_
+
+- [x] **Onboarding → profile** (`onboarding.ts`): answers → business_types + subscribed_categories + concern_text (positives AND negatives) + embedding
+- [x] **Stage A prefilter** (`prefilter.ts`): `Prefilter` interface + `MemoryPrefilter` (cosine) + production `DrizzlePrefilter` (pgvector SQL, injection-safe)
+- [x] **Scoring orchestrator** (`score.ts`): Stage 0→A→B + memo drafting; logs every judgment; true Stage-0 `filteredOut` count
+- [x] **Memo generator** (`memo.ts`): draft-only; citations verified by CODE (dropped if unverifiable); strict no-fabrication guard (figure ⇒ requires stated assumptions)
+- [x] **Trust layer**: `persist.ts` (judgment log + draft memo), `review.ts` (approval-gate state machine, **atomic** state-change+audit via transactions), `audit.ts` (before/after)
+- [x] verify→fix loop: tightened `sanitizeImpactEstimate` (closed the label-word bypass), made audit writes transactional, fixed `filteredOut` overcount, documented prefilter edge cases
+- [x] **Green:** typecheck · 147 tests (+16 gated DB) · eval P/R/F1 = 1.000. **Headline holds through the FULL pipeline** (prefilter+judge+memo), not just the judge.
+
+_Live DB gated:_ persistence/review/prefilter integration tests run with `RUN_DB_TESTS=1` after `db:up && db:migrate`. The approval gate, citation verify, and no-fabrication guard are all enforced in CODE and unit-tested hermetically.
 
 ## Phase 3 — UI  · _not started_
 AppShell + ProfileSwitcher + Bills feed + MemoPanel + Overview map + floating cards + Tracker +
