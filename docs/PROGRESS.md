@@ -37,9 +37,19 @@ pgvector — Docker daemon (colima) isn't started yet; schema is validated by `d
 
 ---
 
-## Phase 1 — Ingestion (parallel)  · _not started_
-Federal (Congress.gov, Federal Register) + 1–3 states (CA first); cursor + backoff; normalize →
-upsert → status_history; classify; embed. Checkpoint: real rows, no dupes on re-run, cursor advances.
+## Phase 1 — Ingestion (parallel)  · _code complete; live run pending Docker/keys_
+
+- [x] Ingest contract: `hash.ts` (content-hash dedup), `itemStore.ts` (ItemStore + MemoryItemStore), `ingest.ts` (upsert→diff→status_history→classify→embed→cursor), `http.ts` (rate-limit/backoff), `agency` field added to NormalizedItem
+- [x] **Congress.gov v3** SourceClient — `fromDateTime` watermark, ascending sort, ≤250/page, fetchFullText
+- [x] **Federal Register v1** SourceClient — comment_close_date, stage (comment_open/finalized/in_effect), agency→Stage-0 wiring
+- [x] **Open States v3** SourceClient (CA first) — identifier normalization, updated_at watermark, state-register gap documented
+- [x] **DrizzleItemStore** — ON CONFLICT upsert, `xmax` isNew, pgvector embedding, sync_state cursor (gated integration test)
+- [x] source registry (`src/sources/index.ts`); verify→fix loop: agency→classify wiring (recall), ascending-sort cursors (no-skip on truncation)
+- [x] **Green:** typecheck · 128 tests (+6 gated DB) · eval P/R/F1 = 1.000. Ingest idempotency/diff/cursor proven hermetically via MemoryItemStore.
+
+_Live run deferred:_ "real rows land, a known recent rule appears" needs live API keys + a running DB
+(Docker/colima). The loop + upsert/diff/cursor semantics are proven against MemoryItemStore; the
+DrizzleItemStore integration test runs with `RUN_DB_TESTS=1` after `db:up && db:migrate`.
 
 ## Phase 2 — Pipeline + evals  · _not started_
 Onboarding → profile; Stage 0/A/B wired to DB; log judgments; memo + citation verify + approval gate
