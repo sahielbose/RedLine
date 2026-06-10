@@ -161,6 +161,25 @@ export interface MemoContent {
   confidence: "low" | "medium" | "high";
 }
 
+export const CitationSchema = z.object({
+  claim: z.string(),
+  snippet: z.string(),
+  locator: z.string().nullable(),
+  verified: z.boolean(),
+});
+
+/** The structured memo the LLM must return (validated; HeuristicLLM also emits it). */
+export const MemoContentSchema = z.object({
+  what_it_does: z.string().min(1),
+  status_and_next_steps: z.string().min(1),
+  who_is_affected: z.string().min(1),
+  recommended_action: z.enum(RECOMMENDED_ACTIONS),
+  recommended_action_note: z.string().nullable(),
+  impact_estimate: z.string().nullable(),
+  citations: z.array(CitationSchema),
+  confidence: z.enum(["low", "medium", "high"]),
+});
+
 export type MemoStatus = "draft" | "approved" | "rejected" | "sent";
 
 // ── Severity presentation (spec §2 Bills feed, §12) ─────────────────────────
