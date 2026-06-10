@@ -1,0 +1,24 @@
+# Self-contained Postgres + pgvector for RedLine.
+# Port 5433 on the host avoids colliding with a local Postgres on 5432.
+#   npm run db:up    # start
+#   npm run db:down  # stop
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: redline-db
+    environment:
+      POSTGRES_USER: redline
+      POSTGRES_PASSWORD: redline
+      POSTGRES_DB: redline
+    ports:
+      - "5433:5432"
+    volumes:
+      - redline-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U redline -d redline"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  redline-pgdata:
