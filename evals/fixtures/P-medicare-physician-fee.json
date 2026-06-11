@@ -1,0 +1,12 @@
+{
+  "id": "P-medicare-physician-fee",
+  "source": "federal_register",
+  "agency": "CMS",
+  "jurisdiction": "us",
+  "type": "proposed_rule",
+  "identifier": "CMS-PFS-Update",
+  "title": "Medicare Physician Fee Schedule: Calendar-Year Payment Rate Update",
+  "summary": "CMS proposes to update the conversion factor and relative value units used to set Medicare payment rates to physicians and other practitioners. The proposal affects clinicians and group practices that bill Medicare for professional services.",
+  "full_text": "The Centers for Medicare and Medicaid Services proposes to update the Medicare Physician Fee Schedule for the upcoming calendar year. The proposal adjusts the conversion factor and the relative value units that determine payment rates to physicians and other practitioners for professional services furnished to Medicare beneficiaries, along with related quality-program provisions. The proposal applies to clinicians and group practices that enroll in and bill the Medicare program for professional services.",
+  "categories": []
+}

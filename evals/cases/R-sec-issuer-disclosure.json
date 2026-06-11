@@ -1,0 +1,11 @@
+{
+  "item": "R-sec-issuer-disclosure",
+  "decoy": true,
+  "note": "Decoy: SEC issuer disclosure / periodic reporting modernization. Reaches public-company issuers with registered securities, not any of these small businesses — no subscribed category overlaps, so reject for ALL four. (Phrased to avoid the licensing keywords 'registration requirement' / 'annual report filing', so it does not leak into licensing_registration.)",
+  "expectations": {
+    "saas-remote": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "ecom-goods": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "food-cpg": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "hardware-maker": { "min": 0, "max": 1, "band": "Low", "flag": false }
+  }
+}

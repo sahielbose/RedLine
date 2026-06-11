@@ -77,6 +77,13 @@ _Live DB gated:_ persistence/review/prefilter integration tests run with `RUN_DB
 _Notes:_ Auth.js left as a stub (demo runs without login, per spec "stub day 1"). Inter loads via the CSS
 stack with a system fallback (not wired through next/font, to keep the build network-free).
 
-## Phase 4 — Delivery + hardening  · _not started_
-pg-boss schedules; SMTP digest of approved items; comment-deadline alerts; grow eval set; expand CA.
-Checkpoint: digest sends; eval thresholds hold.
+## Phase 4 — Delivery + hardening  · _complete_
+
+- [x] **Digest** (`digest.ts`): pure `buildDigestHtml` (severity-ordered, escaped, no bare figures, "approved-only" footer) + `sendDigest` (loads APPROVED memos, sends once, `markSent` approved→sent). The ONLY sender; approved-only enforced twice (SQL + markSent guard).
+- [x] **Comment-deadline alerts** (`alerts.ts`): pure window detector (excludes past/null, daysLeft, UTC-stable)
+- [x] **pg-boss** (`jobs/schedules.ts` + `handlers.ts`): cron defs (hourly federal / daily states / daily score / daily+weekly digest); handlers `ingestSource`, `scoreActiveProfiles` (logs every judgment, drafts memos), `sendDigests` (multi-org adapter → per-org `sendDigest`, recipient from `users`). Import opens no connection.
+- [x] **Eval growth**: 11 → 19 items (44 → 76 cells); +4 positives (L customs, M auto-renewal, N FSMA, O CPSC) caught by existing general gates, +4 decoys (all 0–1). Still **P/R/F1 = 1.000**, headline holds, Stage-0 audit + case-integrity clean.
+- [x] verify→fix: reconciled the `sendDigest` multi-org↔per-org contract (real adapter, not a stub); fixed an invalid fixture source token
+- [x] **Green:** typecheck · 185 tests (+21 gated DB) · eval P/R/F1 = 1.000
+
+_Live operation needs:_ a runner that does `new PgBoss(DATABASE_URL).start()` + `registerJobs(boss)` (a human-invoked entrypoint, since it opens a DB connection), plus API keys + `SMTP_URL` for real ingestion/delivery. All trust guarantees (approval-gated send, no fabrication, code-verified citations) are enforced in code and tested hermetically.

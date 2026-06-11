@@ -1,0 +1,10 @@
+{
+  "item": "M-state-auto-renewal",
+  "note": "software-module positive (sibling of anchor B): a state auto-renewal / recurring-subscription cancellation rule. Flag Critical for the subscription SaaS; the other profiles do not subscribe to the software category, so it is filtered out (score 0).",
+  "expectations": {
+    "saas-remote": { "min": 5, "max": 5, "band": "Critical", "flag": true },
+    "ecom-goods": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "food-cpg": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "hardware-maker": { "min": 0, "max": 1, "band": "Low", "flag": false }
+  }
+}

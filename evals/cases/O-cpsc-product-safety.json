@@ -1,0 +1,10 @@
+{
+  "item": "O-cpsc-product-safety",
+  "note": "hardware-module positive (sibling of expansion H): a CPSC consumer-product-safety standard for connected devices. Flag (monitor) for the hardware maker via the generic in-category gate; filtered for everyone else (only hardware-maker subscribes to the hardware category).",
+  "expectations": {
+    "saas-remote": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "ecom-goods": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "food-cpg": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "hardware-maker": { "min": 3, "max": 4, "band": "Monitor", "flag": true }
+  }
+}

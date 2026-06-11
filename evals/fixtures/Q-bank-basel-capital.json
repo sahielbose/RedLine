@@ -1,0 +1,12 @@
+{
+  "id": "Q-bank-basel-capital",
+  "source": "federal_register",
+  "agency": "OCC",
+  "jurisdiction": "us",
+  "type": "proposed_rule",
+  "identifier": "OCC-Basel-Capital",
+  "title": "Regulatory Capital Rule: Large Banking Organization Capital Standards",
+  "summary": "Federal banking agencies propose revisions to the risk-based capital framework, often described as the Basel III endgame, for large banking organizations. The proposal applies to bank holding companies and depository institutions above a size threshold.",
+  "full_text": "The Office of the Comptroller of the Currency, together with the other federal banking agencies, proposes revisions to the risk-based regulatory capital framework, often described as the Basel III endgame, applicable to large banking organizations. The proposal would change how covered banking organizations calculate risk-weighted assets and the amount of regulatory capital they must maintain against those assets. It applies to bank holding companies and insured depository institutions that exceed the specified asset threshold.",
+  "categories": []
+}

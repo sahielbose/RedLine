@@ -1,0 +1,12 @@
+{
+  "id": "O-cpsc-product-safety",
+  "source": "federal_register",
+  "agency": "CPSC",
+  "jurisdiction": "us",
+  "type": "final_rule",
+  "identifier": "CPSC-ConnectedDevice-Safety",
+  "title": "Consumer Product Safety Standard for Connected Consumer Devices",
+  "summary": "The Consumer Product Safety Commission adopts a mandatory consumer product safety standard, with recall authority, for certain connected consumer devices, addressing hazards such as overheating and lithium battery safety. It reaches manufacturers and importers that place covered devices on the U.S. market.",
+  "full_text": "The Consumer Product Safety Commission adopts a mandatory consumer product safety standard covering certain connected consumer devices, addressing hazards such as overheating and lithium battery safety. The standard sets testing and certification expectations and preserves the Commission's recall authority for noncompliant products. It applies to manufacturers and importers that place covered consumer devices on the U.S. market, including makers of connected hardware.",
+  "categories": ["hardware"]
+}

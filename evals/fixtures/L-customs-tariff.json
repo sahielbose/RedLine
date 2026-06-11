@@ -1,0 +1,12 @@
+{
+  "id": "L-customs-tariff",
+  "source": "federal_register",
+  "agency": "CBP",
+  "jurisdiction": "us",
+  "type": "notice",
+  "identifier": "CBP-Tariff-Customs-Entry",
+  "title": "Additional Tariffs on Imported Goods and Suspension of Duty-Free Customs Entry",
+  "summary": "U.S. Customs and Border Protection implements additional import duties and removes duty-free treatment for affected low-value shipments, so those shipments now require a full customs entry and owe tariffs. Businesses that import finished goods or components face higher landed costs and added paperwork.",
+  "full_text": "U.S. Customs and Border Protection has implemented additional tariffs on a broad set of imported goods and removed duty-free treatment for affected low-value shipments. Importers must now file a full customs entry and pay the applicable import duties and tariffs at the time of entry rather than relying on prior duty-free handling. The action raises landed costs and adds customs-entry recordkeeping for businesses that import finished consumer goods or hardware components for resale.",
+  "categories": ["goods", "hardware"]
+}

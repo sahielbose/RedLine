@@ -1,0 +1,11 @@
+{
+  "item": "Q-bank-basel-capital",
+  "decoy": true,
+  "note": "Decoy (sibling of K): Basel III endgame bank capital standards (OCC/federal banking agencies). Reaches large banking organizations, not any of these businesses — no subscribed category overlaps, so reject for ALL four.",
+  "expectations": {
+    "saas-remote": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "ecom-goods": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "food-cpg": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "hardware-maker": { "min": 0, "max": 1, "band": "Low", "flag": false }
+  }
+}

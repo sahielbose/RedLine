@@ -1,0 +1,12 @@
+{
+  "id": "M-state-auto-renewal",
+  "source": "openstates",
+  "agency": "State Attorney General",
+  "jurisdiction": "us-ca",
+  "type": "bill",
+  "identifier": "State-AutoRenewal-Update",
+  "title": "State Automatic Renewal Law: Recurring Subscription Consent and Cancellation Requirements",
+  "summary": "A state automatic renewal statute adds requirements for how sellers obtain consent for a recurring subscription and provide an easy online cancellation mechanism, often described as click-to-cancel. It binds businesses that offer auto-renewing subscriptions to consumers in the state.",
+  "full_text": "This state automatic renewal law sets requirements for sellers that enroll consumers in a recurring subscription. Sellers must obtain express informed consent before charging, present clear automatic-renewal terms before purchase, and provide a simple online cancellation mechanism so a consumer can cancel a recurring subscription as easily as they signed up. The requirements apply to businesses that offer auto-renewing subscriptions to consumers in the state, alongside the federal negative-option framework.",
+  "categories": ["software"]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "N-fda-preventive-controls",
+  "source": "federal_register",
+  "agency": "FDA",
+  "jurisdiction": "us",
+  "type": "final_rule",
+  "identifier": "FDA-PreventiveControls-HumanFood",
+  "title": "Preventive Controls for Human Food: Updated Recordkeeping under FSMA",
+  "summary": "The FDA updates preventive controls recordkeeping under the Food Safety Modernization Act for facilities that manufacture, process, pack, or hold human food. Establishments that only serve food to consumers are treated differently from registered food facilities.",
+  "full_text": "This rule updates the preventive controls requirements under the Food Safety Modernization Act for facilities that manufacture, process, pack, or hold human food. Covered facilities must maintain a written food safety plan with a hazard analysis and risk-based preventive controls, and keep the associated recordkeeping. The requirements apply to registered food facilities that make, pack, or hold food; establishments that only serve food to consumers on-site are generally treated differently and may be outside the rule's recordkeeping scope.",
+  "categories": ["food"]
+}

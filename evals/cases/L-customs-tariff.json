@@ -1,0 +1,10 @@
+{
+  "item": "L-customs-tariff",
+  "note": "goods-module positive (sibling of headline C): another customs/import action (additional tariffs + loss of duty-free customs entry). Flags Critical for the goods + hardware importers; filtered for SaaS and food (food subscribes to food, not goods, so it never reaches the import gate).",
+  "expectations": {
+    "saas-remote": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "ecom-goods": { "min": 5, "max": 5, "band": "Critical", "flag": true },
+    "food-cpg": { "min": 0, "max": 2, "band": "Low", "flag": false },
+    "hardware-maker": { "min": 5, "max": 5, "band": "Critical", "flag": true }
+  }
+}

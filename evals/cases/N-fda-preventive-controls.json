@@ -1,0 +1,10 @@
+{
+  "item": "N-fda-preventive-controls",
+  "note": "food-module positive (sibling of anchor D): FSMA preventive-controls recordkeeping for facilities that make/pack/hold human food. Flag Critical for the make_pack_hold food maker; filtered for everyone else (only food-cpg subscribes to the food category).",
+  "expectations": {
+    "saas-remote": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "ecom-goods": { "min": 0, "max": 1, "band": "Low", "flag": false },
+    "food-cpg": { "min": 4, "max": 5, "band": "Critical", "flag": true },
+    "hardware-maker": { "min": 0, "max": 1, "band": "Low", "flag": false }
+  }
+}
