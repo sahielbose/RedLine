@@ -87,7 +87,7 @@ _Federal Register needs no key. Embeddings can stay `hash`, or set `EMBEDDER=oll
 
 ```bash
 colima start                 # or start Docker Desktop
-npm run db:up                # docker compose: pgvector/pgvector:pg16
+npm run db:up                # docker run pgvector/pgvector:pg16 on :5433, waits until ready
 npm run db:migrate           # create the schema
 npm run db:seed              # 4 example businesses + eval fixtures
 ```
