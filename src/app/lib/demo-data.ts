@@ -32,16 +32,24 @@ export interface DemoItem {
   action_url?: string;
   /** Marks items added in the last sync window (NEW badge). */
   is_new?: boolean;
+  /** Honest labeling (spec §15): state items are paraphrased illustrations until
+   *  live ingestion runs — the UI badges them SAMPLE. Federal anchors are real. */
+  sample?: boolean;
 }
+
+/** The shape the UI's profile switcher renders (name + one-line descriptor). */
+export type DemoProfile = BusinessProfile & { label: string; kind: string; meta: string };
 
 // ── The four business profiles (mirror the eval profiles, spec §10) ──────────
 const BASE = BASE_CATEGORIES; // the 8 base categories, as typed literals
 
-export const DEMO_PROFILES: Array<BusinessProfile & { label: string }> = [
+export const DEMO_PROFILES: DemoProfile[] = [
   {
     id: "saas-remote",
     org_id: "org-saas",
     label: "Northwind SaaS",
+    kind: "Remote B2B SaaS",
+    meta: "12 staff · subscriptions · CA",
     business_types: ["software"],
     jurisdictions: ["us", "us-ca"],
     attributes: {
@@ -64,6 +72,8 @@ export const DEMO_PROFILES: Array<BusinessProfile & { label: string }> = [
     id: "ecom-goods",
     org_id: "org-ecom",
     label: "Harbor Goods Co.",
+    kind: "E-commerce brand",
+    meta: "30 staff · imports · TX",
     business_types: ["goods"],
     jurisdictions: ["us", "us-ca", "us-tx", "us-ny"],
     attributes: {
@@ -87,6 +97,8 @@ export const DEMO_PROFILES: Array<BusinessProfile & { label: string }> = [
     id: "food-cpg",
     org_id: "org-food",
     label: "Cedar Pantry Foods",
+    kind: "Packaged-food maker",
+    meta: "45 staff · makes & packs · IL",
     business_types: ["food"],
     jurisdictions: ["us", "us-ca", "us-il"],
     attributes: {
@@ -111,6 +123,8 @@ export const DEMO_PROFILES: Array<BusinessProfile & { label: string }> = [
     id: "hardware-maker",
     org_id: "org-hw",
     label: "Ironwood Devices",
+    kind: "Hardware startup",
+    meta: "22 staff · imports parts · WA",
     business_types: ["hardware", "goods"],
     jurisdictions: ["us", "us-ca", "us-wa"],
     attributes: {
@@ -238,6 +252,7 @@ export const DEMO_ITEMS: DemoItem[] = [
   {
     id: "ca-privacy-amend",
     source: "openstates",
+    sample: true,
     jurisdiction: "us-ca",
     type: "bill",
     identifier: "CA-AB-1043",
@@ -257,6 +272,7 @@ export const DEMO_ITEMS: DemoItem[] = [
   {
     id: "ca-fast-food-wage",
     source: "openstates",
+    sample: true,
     jurisdiction: "us-ca",
     type: "bill",
     identifier: "CA-SB-702",
@@ -274,6 +290,7 @@ export const DEMO_ITEMS: DemoItem[] = [
   {
     id: "tx-sales-tax-nexus",
     source: "openstates",
+    sample: true,
     jurisdiction: "us-tx",
     type: "bill",
     identifier: "TX-HB-892",
@@ -293,6 +310,7 @@ export const DEMO_ITEMS: DemoItem[] = [
   {
     id: "wa-right-to-repair",
     source: "openstates",
+    sample: true,
     jurisdiction: "us-wa",
     type: "bill",
     identifier: "WA-HB-2089",
@@ -311,6 +329,7 @@ export const DEMO_ITEMS: DemoItem[] = [
   {
     id: "ny-marketplace-inform",
     source: "openstates",
+    sample: true,
     jurisdiction: "us-ny",
     type: "bill",
     identifier: "NY-SB-445",
@@ -328,6 +347,7 @@ export const DEMO_ITEMS: DemoItem[] = [
   {
     id: "il-food-labeling",
     source: "openstates",
+    sample: true,
     jurisdiction: "us-il",
     type: "bill",
     identifier: "IL-HB-1117",
@@ -346,6 +366,7 @@ export const DEMO_ITEMS: DemoItem[] = [
   {
     id: "co-privacy-kids",
     source: "openstates",
+    sample: true,
     jurisdiction: "us-co",
     type: "bill",
     identifier: "CO-SB-678",
@@ -363,6 +384,7 @@ export const DEMO_ITEMS: DemoItem[] = [
   {
     id: "ga-overtime",
     source: "openstates",
+    sample: true,
     jurisdiction: "us-ga",
     type: "bill",
     identifier: "GA-SB-210",

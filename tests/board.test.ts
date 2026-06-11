@@ -18,7 +18,9 @@ describe("computeDashboard", () => {
     );
     for (const b of Object.values(data.boards)) {
       expect(b.surfaced.length).toBeGreaterThan(0);
-      expect(b.floating.threat).not.toBeNull();
+      // The filtered list carries honest engine justifications for rejects.
+      expect(b.filtered.length).toBeGreaterThan(0);
+      for (const f of b.filtered) expect(f.justification.length).toBeGreaterThan(0);
     }
   });
 
