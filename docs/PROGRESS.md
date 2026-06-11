@@ -63,9 +63,19 @@ DrizzleItemStore integration test runs with `RUN_DB_TESTS=1` after `db:up && db:
 
 _Live DB gated:_ persistence/review/prefilter integration tests run with `RUN_DB_TESTS=1` after `db:up && db:migrate`. The approval gate, citation verify, and no-fabrication guard are all enforced in CODE and unit-tested hermetically.
 
-## Phase 3 — UI  · _not started_
-AppShell + ProfileSwitcher + Bills feed + MemoPanel + Overview map + floating cards + Tracker +
-ReviewQueue + Auth.js stub. Checkpoint: usable end-to-end on seeded data.
+## Phase 3 — UI  · _complete; usable end-to-end on seeded data_
+
+- [x] Data layer: `demo-data.ts` (federal anchors + state bills across CA/TX/WA/NY/IL/CO/GA), `board.ts` (runs the real engine per profile, derives per-state shading + floating cards), `geo.ts`, shared `ui.tsx` primitives
+- [x] **AppShell** (window chrome + tabs + last-sync + honest "seeded demo" note) + **ProfileSwitcher** (accessible listbox — the signature control)
+- [x] **Overview**: SURFACED THREATS rail + **US choropleth** (d3-geo + us-atlas) + auto-cycling **floating cards** (THREAT/STATUS/IMPACT/ACTION, pausable, reduced-motion aware)
+- [x] **Bills** feed + SeverityStamps + **MemoPanel** slide-over (code-verified citations, "Draft — pending approval", "never an unlabeled figure")
+- [x] **Alerts** review queue (approval gate, Approve/Reject, no-auto-send copy) + digest settings; **Tracker** kanban by stage
+- [x] **Browser-verified**: zero console errors; the "Viewing as" switch re-scores + recolors live (SaaS→CA only; Harbor Goods→TX/CA/NY; de minimis 5 Critical for goods, filtered for SaaS); ESC closes the dialog
+- [x] verify→fix: collapsed duplicate FloatingCards mount, declared transitive @types, doc-accuracy on the map transition
+- [x] **Green:** typecheck · 151 tests · eval P/R/F1 = 1.000
+
+_Notes:_ Auth.js left as a stub (demo runs without login, per spec "stub day 1"). Inter loads via the CSS
+stack with a system fallback (not wired through next/font, to keep the build network-free).
 
 ## Phase 4 — Delivery + hardening  · _not started_
 pg-boss schedules; SMTP digest of approved items; comment-deadline alerts; grow eval set; expand CA.

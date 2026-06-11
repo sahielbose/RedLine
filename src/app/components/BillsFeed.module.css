@@ -1,0 +1,214 @@
+/* BillsFeed — the full scored feed for the active business (spec §2 Bills).
+   Card grid + hover lift; the "filtered out" expander makes precision visible. */
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.headCount {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  text-align: left;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+}
+
+.card:hover {
+  box-shadow: 0 6px 20px rgba(21, 32, 59, 0.08);
+  transform: translateY(-1px);
+}
+
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.cardTopMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.identifierRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cardTitle {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ink);
+  margin: 0;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.metaDot {
+  color: var(--muted);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.justification {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink);
+  margin: 0;
+}
+
+.justLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-right: 6px;
+}
+
+.cardFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.status {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.track {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 3px 11px;
+  cursor: pointer;
+  transition: background var(--motion), color var(--motion);
+}
+
+.track:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.trackOn {
+  background: var(--accent);
+  color: #fff;
+}
+
+.empty {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  background: var(--inset);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+  text-align: center;
+}
+
+.filteredExpander {
+  margin-top: 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--inset);
+  overflow: hidden;
+}
+
+.filteredBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  background: transparent;
+  border: none;
+  padding: 11px 14px;
+  cursor: pointer;
+}
+
+.filteredCaret {
+  display: inline-block;
+  font-size: 10px;
+  color: var(--muted);
+  transition: transform var(--motion);
+}
+
+.filteredCaretOpen {
+  transform: rotate(90deg);
+}
+
+.filteredCount {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.filteredBody {
+  padding: 0 14px 13px 32px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.filteredBody p {
+  margin: 0 0 6px;
+}
+
+.footerNote {
+  margin-top: 6px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}

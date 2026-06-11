@@ -1,0 +1,257 @@
+/* MemoPanel — right-side slide-over for a surfaced item's memo (spec §2 Bills).
+   Backdrop fade + panel slide use --motion; reduced-motion is handled globally. */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(21, 32, 59, 0.34);
+  opacity: 0;
+  transition: opacity var(--motion) ease;
+  z-index: 50;
+}
+
+.backdropOpen {
+  opacity: 1;
+}
+
+.panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(560px, 100vw);
+  background: var(--surface);
+  border-left: 1px solid var(--line);
+  box-shadow: -18px 0 48px rgba(21, 32, 59, 0.16);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform var(--motion) cubic-bezier(0.22, 0.61, 0.36, 1);
+  z-index: 51;
+  outline: none;
+}
+
+.panelOpen {
+  transform: translateX(0);
+}
+
+/* Mobile: full-width slide-over (quality floor, spec §12). */
+@media (max-width: 640px) {
+  .panel {
+    width: 100vw;
+    border-left: none;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 18px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.headerMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.headerMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ink);
+  margin: 0;
+}
+
+.closeBtn {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 8px;
+  color: var(--ink-soft);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--motion), color var(--motion);
+}
+
+.closeBtn:hover {
+  background: var(--inset);
+  color: var(--ink);
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sectionBody {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink);
+  margin: 0;
+}
+
+.estimate {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--inset);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.estimateMuted {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.actionNote {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin: 2px 0 0;
+}
+
+.citationList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.citation {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--surface);
+}
+
+.citationClaim {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.45;
+}
+
+.verifiedTick {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--safe);
+  background: var(--safe-bg);
+  border-radius: 5px;
+  padding: 2px 6px;
+  margin-top: 1px;
+  white-space: nowrap;
+}
+
+.snippet {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  border-left: 2px solid var(--line);
+  padding-left: 10px;
+}
+
+.locator {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.verifiedNote {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--muted);
+  margin: 4px 0 0;
+}
+
+.noMemo {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  background: var(--inset);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.footer {
+  padding: 14px 18px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.actionLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.draftNote {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-left: auto;
+}
+
+.confidence {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: capitalize;
+  color: var(--ink-soft);
+}
