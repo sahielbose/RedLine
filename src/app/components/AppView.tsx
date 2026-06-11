@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * /app — the dashboard (ported from the reference prototype): Overview
+ * /app - the dashboard (ported from the reference prototype): Overview
  * (US tile map + auto-cycling cards) · Bills · Alerts · Tracker, all driven by
  * REAL precomputed board data (the engine ran server-side). Switching
- * "Viewing as" swaps boards instantly — the signature recolor. "Add your
+ * "Viewing as" swaps boards instantly - the signature recolor. "Add your
  * business" POSTs /api/profiles, so the response board came from the actual
  * pipeline; the digest POSTs /api/digest with APPROVED memos only (the
  * approval gate, spec §8). Custom profiles + per-profile marks persist to
@@ -15,7 +15,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   AlertTriangle, ArrowRight, Bookmark, BookmarkCheck, Building2, CheckCircle2,
-  ChevronDown, Circle, ClipboardCheck, Cpu, Eye, Mail, MapPin, Pause, Play,
+  ChevronDown, Circle, ClipboardCheck, Cpu, Eye, Mail, MapPin,
   Plus, Quote, Search, ShieldAlert, ShoppingBag, Sparkles, UtensilsCrossed, X,
   type LucideIcon,
 } from "lucide-react";
@@ -25,13 +25,14 @@ import {
   band, categoryLabel, displayJurisdiction, displaySource, homeStates, sevStyle,
   type BandKey,
 } from "@/app/lib/ui";
+import { POSTAL_TO_NAME } from "@/app/lib/geo";
 import { TileMap } from "@/app/components/TileMap";
-import { FloatCards } from "@/app/components/FloatCards";
+import { Spotlight } from "@/app/components/Spotlight";
 import { Toasts, useToasts } from "@/app/components/Toasts";
+import { AgentSearch } from "@/app/components/AgentSearch";
 
 /* ---------- constants ---------- */
 
-const DUR = 6500;
 const PROFILES_KEY = "redline.customProfiles";
 const MARKS_KEY = "redline.marks";
 
@@ -49,9 +50,10 @@ const TYPE_ICON: Record<string, LucideIcon> = {
   hardware: Cpu,
 };
 
-type Tab = "overview" | "bills" | "alerts" | "tracker";
+type Tab = "overview" | "search" | "bills" | "alerts" | "tracker";
 const TAB_LIST: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },
+  { id: "search", label: "Search" },
   { id: "bills", label: "Bills" },
   { id: "alerts", label: "Alerts" },
   { id: "tracker", label: "Tracker" },
@@ -64,7 +66,7 @@ interface ProfileMarks {
 type Marks = Record<string, ProfileMarks>;
 const EMPTY_MARKS: ProfileMarks = { tracked: [], approved: [] };
 
-/** One row of the "filtered out" expander — engine-judged rejects, merged from
+/** One row of the "filtered out" expander - engine-judged rejects, merged from
  *  sub-3 surfaced items and Stage-0/A filtered items. */
 interface LowRow {
   id: string;
@@ -104,7 +106,7 @@ function useCountUp(target: number, dur = 900): number {
       if (p < 1) raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
-    // rAF is suspended in background tabs — guarantee the final value lands.
+    // rAF is suspended in background tabs - guarantee the final value lands.
     const safety = setTimeout(() => setV(target), dur + 250);
     return () => {
       cancelAnimationFrame(raf);
@@ -126,10 +128,8 @@ export function AppView({ data }: { data: DashboardData }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [marks, setMarks] = useState<Marks>({});
   const [showLow, setShowLow] = useState(false);
-  const [cycle, setCycle] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const [hovering, setHovering] = useState(false);
   const [selState, setSelState] = useState<string | null>(null);
+  const [spotId, setSpotId] = useState<string | null>(null);
   const [freq, setFreq] = useState<"daily" | "weekly">("daily");
   const [customProfiles, setCustomProfiles] = useState<ProfileSummary[]>([]);
   const [customBoards, setCustomBoards] = useState<Record<string, BoardData>>({});
@@ -156,7 +156,7 @@ export function AppView({ data }: { data: DashboardData }) {
         }
       }
     } catch {
-      /* corrupted storage — start fresh */
+      /* corrupted storage - start fresh */
     }
     try {
       const raw = localStorage.getItem(MARKS_KEY);
@@ -165,7 +165,7 @@ export function AppView({ data }: { data: DashboardData }) {
         if (parsed && typeof parsed === "object") setMarks(parsed);
       }
     } catch {
-      /* corrupted storage — start fresh */
+      /* corrupted storage - start fresh */
     }
     setHydrated(true);
   }, []);
@@ -175,7 +175,7 @@ export function AppView({ data }: { data: DashboardData }) {
     try {
       localStorage.setItem(PROFILES_KEY, JSON.stringify({ profiles: customProfiles, boards: customBoards }));
     } catch {
-      /* storage full / unavailable — non-fatal */
+      /* storage full / unavailable - non-fatal */
     }
   }, [hydrated, customProfiles, customBoards]);
 
@@ -184,7 +184,7 @@ export function AppView({ data }: { data: DashboardData }) {
     try {
       localStorage.setItem(MARKS_KEY, JSON.stringify(marks));
     } catch {
-      /* storage full / unavailable — non-fatal */
+      /* storage full / unavailable - non-fatal */
     }
   }, [hydrated, marks]);
 
@@ -242,29 +242,40 @@ export function AppView({ data }: { data: DashboardData }) {
     return [...fromSurfaced, ...fromFiltered].sort((a, b) => b.score - a.score);
   }, [board]);
 
-  /* search (bills tab only, like the prototype) */
+  /* Jurisdiction focus: clicking a state tile = that state + Federal (federal
+   * rules apply everywhere, so they always fold in and the view is never empty). */
+  const inFocus = useCallback(
+    (postal: string | null) => !selState || postal === null || postal.toUpperCase() === selState,
+    [selState],
+  );
+  const stateName = useCallback(
+    (p: string) => POSTAL_TO_NAME[p] ?? POSTAL_TO_NAME[p.toLowerCase()] ?? POSTAL_TO_NAME[p.toUpperCase()] ?? p,
+    [],
+  );
+
+  /* search + jurisdiction filter (bills tab) */
   const matchesQ = useCallback(
     (title: string) => !q || title.toLowerCase().includes(q.toLowerCase()),
     [q],
   );
-  const feed = useMemo(() => surfaced.filter((c) => matchesQ(c.title)), [surfaced, matchesQ]);
+  const feed = useMemo(
+    () => surfaced.filter((c) => inFocus(c.postal) && matchesQ(c.title)),
+    [surfaced, inFocus, matchesQ],
+  );
   const lowFeed = useMemo(() => low.filter((c) => matchesQ(c.title)), [low, matchesQ]);
 
-  /* cycling (overview) */
-  const cycleList = useMemo(
-    () => (selState ? surfaced.filter((i) => i.postal && i.postal.toUpperCase() === selState) : surfaced),
-    [surfaced, selState],
+  /* overview: rail list (jurisdiction-focused) + the single highlighted item */
+  const railList = useMemo(() => surfaced.filter((s) => inFocus(s.postal)), [surfaced, inFocus]);
+  const federalCount = useMemo(() => surfaced.filter((s) => s.postal === null).length, [surfaced]);
+  const spotItem: SurfacedCard | null = useMemo(
+    () => railList.find((i) => i.id === spotId) ?? railList[0] ?? null,
+    [railList, spotId],
   );
-  const halted = paused || hovering || cycleList.length <= 1;
-  const current: SurfacedCard | null = cycleList.length ? cycleList[cycle % cycleList.length] : null;
+  /* reset focus + highlight when switching businesses */
   useEffect(() => {
-    setCycle(0);
-  }, [activeId, selState]);
-  useEffect(() => {
-    if (halted) return;
-    const t = setInterval(() => setCycle((c) => c + 1), DUR);
-    return () => clearInterval(t);
-  }, [halted, cycleList.length, activeId, selState]);
+    setSelState(null);
+    setSpotId(null);
+  }, [activeId]);
 
   /* memo slide-over */
   const open = useMemo(
@@ -298,7 +309,7 @@ export function AppView({ data }: { data: DashboardData }) {
   const pending = surfaced.filter((s) => !approved.has(s.id)).length;
   const approvedCards = useMemo(() => surfaced.filter((c) => approved.has(c.id)), [surfaced, approved]);
 
-  /* digest — sends APPROVED items only (the approval gate) */
+  /* digest - sends APPROVED items only (the approval gate) */
   const sendDigest = useCallback(async () => {
     if (sendingDigest) return;
     setSendingDigest(true);
@@ -326,19 +337,19 @@ export function AppView({ data }: { data: DashboardData }) {
         toast(
           json?.transport === "smtp"
             ? "Digest sent via SMTP"
-            : "Digest rendered — delivered to the server console (no SMTP_URL set)",
+            : "Digest rendered - delivered to the server console (no SMTP_URL set)",
         );
       } else {
-        toast(json?.error ?? "Digest failed — try again");
+        toast(json?.error ?? "Digest failed - try again");
       }
     } catch {
-      toast("Digest failed — network error");
+      toast("Digest failed - network error");
     } finally {
       setSendingDigest(false);
     }
   }, [sendingDigest, board.label, approvedCards, toast]);
 
-  /* "Add your business" — the REAL engine re-scores the board server-side */
+  /* "Add your business" - the REAL engine re-scores the board server-side */
   const flip = (arr: string[], set: (v: string[]) => void, v: string) =>
     set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 
@@ -380,12 +391,12 @@ export function AppView({ data }: { data: DashboardData }) {
         setFTypes([]);
         setFAttrs({});
         setFStates(["US"]);
-        toast("Profile created — the engine just re-scored the board for you");
+        toast("Profile created - the engine just re-scored the board for you");
       } else {
-        toast(json?.error ?? "Could not create the profile — try again");
+        toast(json?.error ?? "Could not create the profile - try again");
       }
     } catch {
-      toast("Could not create the profile — network error");
+      toast("Could not create the profile - network error");
     } finally {
       setCreating(false);
     }
@@ -418,8 +429,14 @@ export function AppView({ data }: { data: DashboardData }) {
               ))}
             </div>
             <div className="sync">
-              <span className="chip sample">Sample state data</span>
-              <span><span className="syncdot" /> Scored live · demo data</span>
+              {data.demoMode ? (
+                <>
+                  <span className="chip sample">Sample state data</span>
+                  <span><span className="syncdot" /> Scored live · seeded demo</span>
+                </>
+              ) : (
+                <span><span className="syncdot" /> Live · real bills and rules</span>
+              )}
               <Link className="tab" href="/" style={{ padding: "5px 10px" }}>Site ↗</Link>
             </div>
           </div>
@@ -450,66 +467,70 @@ export function AppView({ data }: { data: DashboardData }) {
           {/* ───── OVERVIEW ───── */}
           {tab === "overview" && (
             <main className="main" key={"ov" + activeId}>
-              <div style={{ display: "flex", alignItems: "flex-end", gap: 14, flexWrap: "wrap" }}>
-                <div>
-                  <div className="h-app">Threat overview</div>
-                  <div className="sub-app">What’s moving through government, scored for <b>{board.label}</b> — {board.meta}.</div>
-                </div>
-                <button className="cycle" style={{ marginLeft: "auto" }} onClick={() => setPaused((v) => !v)} aria-pressed={paused}>
-                  {paused ? <Play size={13} /> : <Pause size={13} />} {paused ? "Resume cycling" : "Auto-cycling"}
-                </button>
-              </div>
+              <div className="h-app">Threat overview</div>
+              <div className="sub-app">What is moving through government, scored for <b>{board.label}</b> - {board.meta}.</div>
 
               <div className="ov">
                 <aside className="rail">
-                  <div className="rail-h">Surfaced threats <span className="ct">{surfaced.length}</span></div>
+                  <div className="rail-h">Surfaced threats <span className="ct">{railList.length}</span></div>
                   <div className="rail-list">
-                    {surfaced.map((it, i) => (
+                    {railList.map((it) => (
                       <button
                         key={it.id}
-                        className={"titem" + (current && current.id === it.id ? " on" : "")}
-                        style={{ animationDelay: `${i * 40}ms` }}
-                        onClick={() => {
-                          const idx = cycleList.findIndex((x) => x.id === it.id);
-                          if (idx >= 0) { setCycle(idx); setPaused(true); }
-                          else { setSelState(null); setCycle(surfaced.findIndex((x) => x.id === it.id)); setPaused(true); }
-                        }}
+                        className={"titem" + (spotItem && spotItem.id === it.id ? " on" : "")}
+                        onClick={() => setSpotId(it.id)}
+                        aria-pressed={spotItem?.id === it.id}
                       >
                         <span className="ti mono">
                           {it.identifier}
                           {it.isNew && <span className="chip new">NEW</span>}
-                          {it.sample && <span className="chip sample">SAMPLE</span>}
                         </span>
                         <span className="tt">{it.title}</span>
                       </button>
                     ))}
-                    {surfaced.length === 0 && (
-                      <div className="empty">Nothing surfaced for this business yet.<br />Switch profiles to compare.</div>
+                    {railList.length === 0 && (
+                      <div className="empty">
+                        {selState
+                          ? `No ${stateName(selState)} or federal items surfaced for this business yet.`
+                          : "Nothing surfaced for this business yet. Switch profiles to compare."}
+                      </div>
                     )}
                   </div>
                   <div className="rail-f">
-                    Built to watch 130,000+ bills and rules across 50 states + Congress — this demo scores a labeled sample set.
+                    Watching Congress, the Federal Register, and state legislatures. Scored live against this business as items move.
                   </div>
                 </aside>
 
-                <div className="maparea" onMouseEnter={() => setHovering(true)} onMouseLeave={() => setHovering(false)}>
+                <div className="maparea">
                   <div className="map-top">
-                    <span className="pill"><MapPin size={11} /> {selState ? selState + " focus" : "United States"}</span>
-                    <span className="chip">Federal: {surfaced.filter((i) => i.postal === null).length} flagged</span>
-                    {selState && (
-                      <button className="chip" onClick={() => setSelState(null)} style={{ cursor: "pointer" }}>Clear focus ✕</button>
+                    <span className="pill"><MapPin size={11} /> {selState ? `Focused: ${stateName(selState)} + Federal` : "All jurisdictions"}</span>
+                    <span className="map-fed">Federal: {federalCount} flagged</span>
+                    {selState ? (
+                      <button className="clearfocus" onClick={() => { setSelState(null); setSpotId(null); }} title="Show all jurisdictions again">
+                        Clear focus <X size={12} />
+                      </button>
+                    ) : (
+                      <span className="map-hint">Click a state to focus</span>
                     )}
                   </div>
-                  <TileMap map={board.mapByState} selected={selState} onSelect={setSelState} home={homeStates(profile.jurisdictions)} />
+                  <TileMap map={board.mapByState} selected={selState} onSelect={(s) => { setSelState(s); setSpotId(null); }} home={homeStates(profile.jurisdictions)} />
                   <div className="legend">
                     <span><span className="sw" style={{ background: "var(--map-hot)" }} />High threat</span>
                     <span><span className="sw" style={{ background: "var(--map-mid)" }} />Watching</span>
                     <span><span className="sw" style={{ background: "var(--map-empty)" }} />Clear</span>
                     <span><span className="sw" style={{ border: "1.5px dashed var(--critical)", background: "transparent" }} />Home state</span>
                   </div>
-                  <FloatCards item={current} cycleKey={activeId + "-" + cycle + (selState ?? "")} dur={DUR} paused={halted} />
+                  <div className="map-help">Click any state to see what affects a business there: that state&apos;s bills plus all federal rules. Click again to clear.</div>
+                  <Spotlight item={spotItem} />
                 </div>
               </div>
+            </main>
+          )}
+
+          {/* ───── SEARCH (agentic) ───── */}
+          {tab === "search" && (
+            <main className="main" key={"se" + activeId}>
+              <AgentSearch profileId={activeId} profileLabel={profile?.label ?? "your business"} />
             </main>
           )}
 
@@ -554,7 +575,7 @@ export function AppView({ data }: { data: DashboardData }) {
                       style={{ animationDelay: `${i * 45}ms`, cursor: "pointer" }}
                       onClick={() => setOpenId(r.id)}
                       onKeyDown={(e) => {
-                        // Only open from the card itself — not from the nested Track button.
+                        // Only open from the card itself - not from the nested Track button.
                         if ((e.key === "Enter" || e.key === " ") && e.target === e.currentTarget) {
                           e.preventDefault();
                           setOpenId(r.id);
@@ -617,7 +638,7 @@ export function AppView({ data }: { data: DashboardData }) {
           {tab === "alerts" && (
             <main className="main" key={"al" + activeId}>
               <div className="h-app">Alerts & review</div>
-              <div className="sub-app">Drafted memos wait here — nothing goes out until you approve it.</div>
+              <div className="sub-app">Drafted memos wait here - nothing goes out until you approve it.</div>
 
               <div className="seclabel" style={{ marginTop: 20 }}>Review queue<span className="ln" /></div>
               <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
@@ -632,7 +653,7 @@ export function AppView({ data }: { data: DashboardData }) {
                     </span>
                     <button
                       className="approve"
-                      onClick={() => toggleMark("approved", r.id, "Memo approved — will appear in the next digest")}
+                      onClick={() => toggleMark("approved", r.id, "Memo approved - will appear in the next digest")}
                     >
                       {approved.has(r.id) ? "Undo" : "Approve memo"}
                     </button>
@@ -685,7 +706,7 @@ export function AppView({ data }: { data: DashboardData }) {
                           <div className="bm">{r.identifier}</div>
                         </button>
                       ))}
-                      {itemsIn.length === 0 && <div className="empty" style={{ padding: "16px 4px" }}>—</div>}
+                      {itemsIn.length === 0 && <div className="empty" style={{ padding: "16px 4px" }}>-</div>}
                     </div>
                   );
                 })}
@@ -748,7 +769,7 @@ export function AppView({ data }: { data: DashboardData }) {
                     </div>
                   ) : (
                     <p style={{ color: "var(--muted)" }}>
-                      Citations populate from the source text once live ingestion runs{open.sample ? " — this is sample data" : ""}.
+                      Citations populate from the source text once live ingestion runs{open.sample ? " - this is sample data" : ""}.
                     </p>
                   )}
                 </div>
@@ -762,7 +783,7 @@ export function AppView({ data }: { data: DashboardData }) {
                 </button>
                 <button
                   className={"pbtn primary" + (approved.has(open.id) ? " done" : "")}
-                  onClick={() => toggleMark("approved", open.id, "Memo approved — will appear in the next digest")}
+                  onClick={() => toggleMark("approved", open.id, "Memo approved - will appear in the next digest")}
                 >
                   {approved.has(open.id) ? <><CheckCircle2 size={15} /> Approved</> : <><ClipboardCheck size={15} /> Approve memo</>}
                 </button>
@@ -784,7 +805,7 @@ export function AppView({ data }: { data: DashboardData }) {
                 <button className="pclose" style={{ position: "static", marginLeft: "auto" }} onClick={() => setModal(false)} aria-label="Close"><X size={15} /></button>
               </div>
               <p style={{ fontSize: 13, color: "var(--muted)", margin: "8px 0 0", lineHeight: 1.55 }}>
-                This is the two-minute profile. It becomes the filter — the engine re-scores the board for you the moment you save.
+                This is the two-minute profile. It becomes the filter - the engine re-scores the board for you the moment you save.
               </p>
             </div>
             <div className="mbody">

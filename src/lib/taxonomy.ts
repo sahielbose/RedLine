@@ -1,11 +1,11 @@
 /**
  * RedLine regulation taxonomy + tagging rules (spec §9).
  *
- * The category SETS themselves live in the shared contract (`@/lib/types`) — we
+ * The category SETS themselves live in the shared contract (`@/lib/types`) - we
  * import them here, never redefine them. This module adds:
- *   1. TAGGING_RULES — a declarative map of agency/keyword signals → categories,
+ *   1. TAGGING_RULES - a declarative map of agency/keyword signals → categories,
  *      used by Stage 0 classification (recall-first; tag generously).
- *   2. businessTypesToSubscribedCategories — base ∪ module categories a profile
+ *   2. businessTypesToSubscribedCategories - base ∪ module categories a profile
  *      subscribes to, derived from its business_types (spec §9, §10).
  *
  * Why declarative rules and not a model: Stage 0 must be cheap, deterministic,
@@ -31,7 +31,7 @@ export type { BaseCategory, ModuleCategory, Category };
  * the item's source/agency matches one of `agencies`. When it fires it attaches
  * every category in `categories`.
  *
- * Rules are intentionally OR-ed and additive — we tag generously and let the
+ * Rules are intentionally OR-ed and additive - we tag generously and let the
  * Stage-B judge (and the per-category gates in `relevance.ts`) do the precision
  * work. A missed tag is a silent recall loss (spec §7 warning), so err toward
  * over-tagging here.
@@ -51,7 +51,7 @@ export interface TaggingRule {
 
 /**
  * The tagging rule set (spec §9). Keyword lists are lowercased; matching is a
- * normalized substring test. Ordering does not matter — all firing rules union.
+ * normalized substring test. Ordering does not matter - all firing rules union.
  */
 export const TAGGING_RULES: readonly TaggingRule[] = [
   // ── BASE: classification / scheduling ────────────────────────────────────

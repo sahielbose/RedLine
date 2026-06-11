@@ -42,8 +42,11 @@ import { fetchJson } from "@/sources/http";
 
 const BASE_URL = "https://v3.openstates.org/bills";
 const DEFAULT_PER_PAGE = 20;
-/** Cold-start safety cap so we don't page through all of history (spec §5). */
-const MAX_PAGES = 25;
+/** Cold-start safety cap so we don't page through all of history (spec §5).
+ *  Kept low because Open States' free tier rate-limits at ~10 req/min; one run
+ *  of <=6 pages stays under the window. Ascending sort + cursor means the next
+ *  run resumes at the unfetched tail, so this caps per-run, not total, coverage. */
+const MAX_PAGES = 6;
 /** Cold start: bounded recent window (DATA_SOURCES.md cursor rule #1). */
 const COLD_START_LOOKBACK_DAYS = 30;
 
@@ -256,7 +259,13 @@ export class OpenStatesClient implements SourceClient {
    * hole). Boundary re-fetch at the watermark is dedup-safe (content_hash).
    */
   async fetchSince(cursor: string | null): Promise<{ items: NormalizedItem[]; cursor: string }> {
-    const updatedSince = cursor ?? this.coldStartCursor();
+    // v3 wants `updated_since` as YYYY-MM-DDTHH:MM:SS — NO milliseconds and NO 'Z'
+    // (both 400 the gateway). Normalize whatever the cursor carries to 19 chars.
+    const raw = cursor ?? this.coldStartCursor();
+    const parsed = new Date(raw);
+    const updatedSince = Number.isNaN(parsed.getTime())
+      ? raw.slice(0, 19)
+      : parsed.toISOString().slice(0, 19);
     const headers: Record<string, string> = {};
     // The header is the documented auth; ?apikey= also works. Omit when absent
     // (tests inject fetchImpl and never reach the network).
@@ -266,20 +275,31 @@ export class OpenStatesClient implements SourceClient {
     let maxUpdated = updatedSince;
 
     for (let page = 1; page <= MAX_PAGES; page++) {
-      const data = await fetchJson<OpenStatesPage>(BASE_URL, {
-        headers,
-        query: {
-          jurisdiction: this.jurisdiction,
-          sort: "updated_asc",
-          // The v3 API accepts repeated include params; the http helper coerces
-          // to a single string, which the gateway accepts comma/space-joined.
-          include: "abstracts sponsorships actions",
-          updated_since: updatedSince,
-          page,
-          per_page: this.perPage,
-        },
-        fetchImpl: this.fetchImpl,
-      });
+      let data: OpenStatesPage;
+      try {
+        data = await fetchJson<OpenStatesPage>(BASE_URL, {
+          headers,
+          query: {
+            jurisdiction: this.jurisdiction,
+            sort: "updated_asc",
+            // The v3 gateway requires REPEATED include params (include=a&include=b);
+            // it 422s on comma/space-joined values. buildUrl expands the array.
+            include: ["abstracts", "sponsorships", "actions"],
+            updated_since: updatedSince,
+            page,
+            per_page: this.perPage,
+          },
+          fetchImpl: this.fetchImpl,
+        });
+      } catch (err) {
+        // Open States' free tier is aggressively rate-limited. If we've already
+        // collected real items, keep them and advance the cursor by what we saw
+        // rather than throwing away a good partial poll; the ascending sort means
+        // the next run resumes at the unfetched (newer) tail. Only a first-page
+        // failure (zero items) is a real error worth surfacing.
+        if (items.length > 0) break;
+        throw err;
+      }
 
       const results = data.results ?? [];
       for (const bill of results) {

@@ -4,9 +4,13 @@
  * otherwise). `fetchImpl` is injectable so source clients are testable without
  * network — though most tests exercise the pure `normalize*` functions directly.
  */
+type QueryValue = string | number | boolean | undefined | null;
+
 export interface FetchJsonOpts {
   headers?: Record<string, string>;
-  query?: Record<string, string | number | boolean | undefined | null>;
+  /** Array values expand to repeated params (`include=a&include=b`), which is
+   *  what the Open States v3 gateway requires (it 422s on comma/space joins). */
+  query?: Record<string, QueryValue | QueryValue[]>;
   /** Total attempts = maxRetries + 1. */
   maxRetries?: number;
   timeoutMs?: number;
@@ -22,8 +26,13 @@ const defaultSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 export function buildUrl(base: string, query?: FetchJsonOpts["query"]): string {
   if (!query) return base;
   const url = new URL(base);
+  const keep = (x: QueryValue) => x !== undefined && x !== null && x !== "";
   for (const [k, v] of Object.entries(query)) {
-    if (v !== undefined && v !== null && v !== "") url.searchParams.set(k, String(v));
+    if (Array.isArray(v)) {
+      for (const item of v) if (keep(item)) url.searchParams.append(k, String(item));
+    } else if (keep(v)) {
+      url.searchParams.set(k, String(v));
+    }
   }
   return url.toString();
 }

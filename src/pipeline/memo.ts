@@ -66,11 +66,11 @@ export function memoSourceText(item: JudgeableItem): string {
 
 /**
  * Null out an impact_estimate that carries a numeric figure WITHOUT stating its
- * assumptions — i.e. a fabricated "hero number" (spec §15 / CLAUDE.md rule 7,
+ * assumptions - i.e. a fabricated "hero number" (spec §15 / CLAUDE.md rule 7,
  * which require a labeled estimate WITH its assumptions, or empty).
  *
  * Strict by design: a figure survives ONLY if the text also states assumptions
- * (the "assum" stem — assumptions/assuming/assume). Merely sitting next to a soft
+ * (the "assum" stem - assumptions/assuming/assume). Merely sitting next to a soft
  * word like "if"/"range"/"~" is NOT enough (that bypass is why this was
  * tightened). "Figure" covers digits, currency, percent, and spelled-out
  * magnitudes (thousand/million/billion/…). Purely qualitative text is kept.
@@ -117,7 +117,7 @@ export async function generateMemo(args: GenerateMemoArgs): Promise<MemoDraft> {
 
   return {
     content,
-    status: "draft", // approval gate — never auto-approved/sent
+    status: "draft", // approval gate - never auto-approved/sent
     model: modelName(llm),
     prompt_version: PROMPT_VERSION,
   };

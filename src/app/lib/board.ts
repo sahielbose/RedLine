@@ -2,11 +2,11 @@
  * Server-side board computation for the dashboard. Runs the REAL relevance
  * engine (Stage 0→A→B + memo) over the seeded demo data for every profile, so
  * the UI is a thin renderer and the "Viewing as" switch just swaps precomputed,
- * serializable board data — instant recolor, no keys/DB.
+ * serializable board data - instant recolor, no keys/DB.
  *
  * `computeBoardForProfile` is also the engine behind the "Add your business"
  * API (/api/profiles): onboarding builds a real BusinessProfile, and this runs
- * the same pipeline over it — so a user-created profile re-scores the board
+ * the same pipeline over it - so a user-created profile re-scores the board
  * through the actual engine, not a UI imitation.
  *
  * Map shading is driven by STATE-level surfaced items (so the choropleth varies
@@ -48,7 +48,7 @@ export interface SurfacedCard {
 }
 
 /** An item the pipeline filtered out BEFORE the judge (Stage 0/A reject), with
- *  an honest engine-produced justification — precision made visible (spec §2). */
+ *  an honest engine-produced justification - precision made visible (spec §2). */
 export interface FilteredCard {
   id: string;
   identifier: string;
@@ -93,7 +93,9 @@ export interface ProfileSummary {
 export interface DashboardData {
   boards: Record<string, BoardData>;
   profiles: ProfileSummary[];
-  demoMode: true;
+  /** false when the board is reading real ingested data from the DB (live mode),
+   *  true when it falls back to the hermetic seeded dataset (no DB / empty DB). */
+  demoMode: boolean;
 }
 
 /** A profile plus the display strings the switcher renders. */
@@ -199,7 +201,7 @@ export async function computeBoardForProfile(profile: BoardProfile): Promise<Boa
   });
 
   // Map shading: STATE-level surfaced items only (federal is a national baseline,
-  // shown in the rail/cards) — so the map varies per business. Track the top item.
+  // shown in the rail/cards) - so the map varies per business. Track the top item.
   const mapByState: Record<string, StateThreat> = {};
   for (const card of surfaced) {
     if (!card.postal || card.score < 3) continue;

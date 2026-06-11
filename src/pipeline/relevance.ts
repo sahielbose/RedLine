@@ -1,8 +1,8 @@
 /**
- * The relevance engine — `heuristicJudge` (spec §7, §9, §11).
+ * The relevance engine - `heuristicJudge` (spec §7, §9, §11).
  *
  * A GENERAL, deterministic rubric scorer. It NEVER hardcodes by item id or
- * title — it scores from general signals: (a) which subscribed category the
+ * title - it scores from general signals: (a) which subscribed category the
  * item triggered, (b) the profile ATTRIBUTE that gates that category, and
  * (c) keyword signal strength. The same item therefore scores differently per
  * profile (the horizontal-relevance property the product is built on).
@@ -209,7 +209,7 @@ function gateFoodTraceability(item: JudgeableItem, profile: BusinessProfile, tex
     };
   }
   // A food business whose supply-chain role is unset, or a non-food business: this
-  // gate can't decide. Return NOT_APPLICABLE so we fall through — an under-specified
+  // gate can't decide. Return NOT_APPLICABLE so we fall through - an under-specified
   // food business still gets a generic in-category monitor score (no recall hole),
   // and a non-food business is scored by whatever other category it shares.
   return NOT_APPLICABLE;
@@ -340,14 +340,14 @@ const GATES: ReadonlyArray<(i: JudgeableItem, p: BusinessProfile, t: string) => 
 
 /**
  * Score how much one item threatens/affects one business (spec §7 rubric).
- * Deterministic and general — no item-id/title special-casing.
+ * Deterministic and general - no item-id/title special-casing.
  */
 export function heuristicJudge(profile: BusinessProfile, item: JudgeableItem): JudgeResult {
   const itemCats = resolveCategories(item);
   const shared = categoryIntersect(itemCats, profile.subscribed_categories);
 
   // Stage-0 reject: no shared category ⇒ irrelevant (decoys land here for all
-  // profiles — FMCSA hours-of-service, Medicare reimbursement, bank capital).
+  // profiles - FMCSA hours-of-service, Medicare reimbursement, bank capital).
   if (shared.length === 0) {
     return validate({
       score: 0,

@@ -1,0 +1,294 @@
+/**
+ * LIVE board: the dashboard read over REAL ingested data (spec §2, §6).
+ *
+ * Unlike board.ts (which scores the hermetic seeded dataset on demand), this
+ * reads what the ingestion + scoring jobs already wrote to Postgres - real bills
+ * and rules from Congress.gov, the Federal Register, and Open States, with the
+ * relevance judgments + cited memos the pipeline logged for each org profile.
+ *
+ * It returns the SAME DashboardData/BoardData shape board.ts does, so the UI is
+ * an unchanged renderer: the dashboard page prefers this and falls back to the
+ * seeded board only when the DB is empty or unreachable. No fabrication anywhere
+ * - every field is a column the pipeline populated from a verifiable source.
+ */
+import { getPool } from "@/lib/db";
+import { severityLabel, type MemoContent, type RecommendedAction } from "@/lib/types";
+import { jurisdictionToPostal } from "@/app/lib/geo";
+import type {
+  BoardData,
+  DashboardData,
+  FilteredCard,
+  ProfileSummary,
+  StateThreat,
+  SurfacedCard,
+} from "@/app/lib/board";
+
+/** Score at/above which an item is "surfaced" (shown on the board); below this it
+ *  lands in the "filtered out" expander with its honest justification. */
+const SURFACE_MIN = 3;
+const NEW_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+interface ProfileRow {
+  id: string;
+  org_id: string;
+  name: string | null;
+  business_types: string[];
+  jurisdictions: string[];
+  concern_text: string | null;
+}
+
+interface JudgedRow {
+  id: string;
+  source: string;
+  jurisdiction: string;
+  identifier: string | null;
+  title: string;
+  summary: string | null;
+  status: string | null;
+  stage: string | null;
+  last_action_date: Date | null;
+  last_action_text: string | null;
+  comment_close_date: Date | null;
+  introduced_date: Date | null;
+  categories: string[];
+  full_text_url: string | null;
+  raw: unknown;
+  first_seen_at: Date | null;
+  score: number | null;
+  justification: string | null;
+  matched_concern: string | null;
+  // memo (nullable - drafted only for high scorers)
+  what_it_does: string | null;
+  status_and_next_steps: string | null;
+  who_is_affected: string | null;
+  recommended_action: string | null;
+  recommended_action_note: string | null;
+  impact_estimate: string | null;
+  citations: unknown;
+  confidence: string | null;
+  memo_status: string | null;
+}
+
+/** Human display label/kind for the seeded orgs; user-added profiles derive theirs. */
+const ORG_LABELS: Record<string, { label: string; kind: string }> = {
+  "saas-remote": { label: "Remote SaaS Co.", kind: "B2B Software" },
+  "ecom-goods": { label: "E-commerce Retailer", kind: "Consumer Goods" },
+  "food-cpg": { label: "Food CPG Maker", kind: "Food & Beverage" },
+  "hardware-maker": { label: "Hardware Maker", kind: "Electronics / Hardware" },
+};
+
+const TYPE_KIND: Record<string, string> = {
+  software: "B2B Software",
+  goods: "Consumer Goods",
+  food: "Food & Beverage",
+  hardware: "Electronics / Hardware",
+  services: "Services",
+};
+
+function deriveLabels(p: ProfileRow): { label: string; kind: string; meta: string } {
+  const known = p.name ? ORG_LABELS[p.name] : undefined;
+  const primaryType = p.business_types[0] ?? "business";
+  const kind = known?.kind ?? TYPE_KIND[primaryType] ?? "Your business";
+  const label =
+    known?.label ??
+    (p.name
+      ? p.name.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+      : "Your business");
+  // meta: the leading clause of the generated concern text (real, honest), else a
+  // jurisdiction + type summary.
+  const lead = (p.concern_text ?? "").split(/[.;]/)[0]?.trim() ?? "";
+  const meta = lead
+    ? lead.length > 90
+      ? lead.slice(0, 88) + "…"
+      : lead
+    : [primaryType, p.jurisdictions.join(", ")].filter(Boolean).join(" · ");
+  return { label, kind, meta };
+}
+
+/** Federal agency name for a Federal Register item (from the raw payload), else null. */
+function agencyOf(source: string, raw: unknown): string | null {
+  if (source !== "federal_register") return null;
+  const r = raw as { agencies?: { name?: string | null }[] } | null;
+  return r?.agencies?.[0]?.name ?? null;
+}
+
+function toIsoDate(d: Date | string | null): string {
+  if (!d) return "";
+  const dt = typeof d === "string" ? new Date(d) : d;
+  return Number.isNaN(dt.getTime()) ? "" : dt.toISOString().slice(0, 10);
+}
+
+function memoFrom(r: JudgedRow): MemoContent | null {
+  if (r.what_it_does === null && r.who_is_affected === null) return null;
+  const citations = Array.isArray(r.citations)
+    ? (r.citations as MemoContent["citations"])
+    : [];
+  const conf = r.confidence === "high" || r.confidence === "medium" ? r.confidence : "low";
+  return {
+    what_it_does: r.what_it_does ?? "",
+    status_and_next_steps: r.status_and_next_steps ?? "",
+    who_is_affected: r.who_is_affected ?? "",
+    recommended_action: (r.recommended_action ?? "monitor") as RecommendedAction,
+    recommended_action_note: r.recommended_action_note,
+    impact_estimate: r.impact_estimate,
+    citations,
+    confidence: conf,
+  };
+}
+
+function surfacedCardFrom(r: JudgedRow): SurfacedCard {
+  const score = r.score ?? 0;
+  const firstSeen = r.first_seen_at ? new Date(r.first_seen_at).getTime() : 0;
+  return {
+    id: r.id,
+    identifier: r.identifier ?? "",
+    title: r.title,
+    summary: r.summary ?? "",
+    source: r.source,
+    agency: agencyOf(r.source, r.raw),
+    jurisdiction: r.jurisdiction,
+    postal: jurisdictionToPostal(r.jurisdiction),
+    categories: r.categories ?? [],
+    score,
+    severity: severityLabel(score),
+    justification: r.justification ?? "",
+    matchedConcern: r.matched_concern,
+    status: r.status ?? "",
+    stage: r.stage ?? "",
+    lastActionDate: toIsoDate(r.last_action_date) || toIsoDate(r.introduced_date),
+    commentCloseDate: r.comment_close_date ? toIsoDate(r.comment_close_date) : null,
+    provenance: r.last_action_text,
+    actionUrl: r.full_text_url,
+    isNew: firstSeen > 0 && Date.now() - firstSeen < NEW_WINDOW_MS,
+    sample: false,
+    memo: memoFrom(r),
+  };
+}
+
+/** All scored items for one org, newest-judgment-per-item, joined to its memo. */
+async function judgedRowsForOrg(orgId: string): Promise<JudgedRow[]> {
+  const { rows } = await getPool().query<JudgedRow>(
+    `SELECT DISTINCT ON (rj.item_id)
+       i.id, i.source, i.jurisdiction, i.identifier, i.title, i.summary,
+       i.status, i.stage, i.last_action_date, i.last_action_text, i.comment_close_date,
+       i.introduced_date, i.categories, i.full_text_url, i.raw, i.first_seen_at,
+       rj.score, rj.justification, rj.matched_concern,
+       m.what_it_does, m.status_and_next_steps, m.who_is_affected, m.recommended_action,
+       m.recommended_action_note, m.impact_estimate, m.citations, m.confidence,
+       m.status AS memo_status
+     FROM relevance_judgments rj
+     JOIN items i ON i.id = rj.item_id
+     LEFT JOIN memos m ON m.item_id = rj.item_id AND m.org_id = rj.org_id
+     WHERE rj.org_id = $1 AND rj.score IS NOT NULL
+     ORDER BY rj.item_id, rj.created_at DESC`,
+    [orgId],
+  );
+  return rows;
+}
+
+function boardFromRows(p: ProfileRow, rows: JudgedRow[], totalItems: number): BoardData {
+  const { label, kind, meta } = deriveLabels(p);
+
+  const surfaced: SurfacedCard[] = rows
+    .filter((r) => (r.score ?? 0) >= SURFACE_MIN)
+    .map(surfacedCardFrom)
+    .sort((a, b) => b.score - a.score || (b.lastActionDate > a.lastActionDate ? 1 : -1));
+
+  const filtered: FilteredCard[] = rows
+    .filter((r) => (r.score ?? 0) < SURFACE_MIN)
+    .map((r) => ({
+      id: r.id,
+      identifier: r.identifier ?? "",
+      title: r.title,
+      source: r.source,
+      categories: r.categories ?? [],
+      score: r.score ?? 0,
+      justification: r.justification ?? "",
+      sample: false,
+    }))
+    .sort((a, b) => b.score - a.score);
+
+  const mapByState: Record<string, StateThreat> = {};
+  for (const card of surfaced) {
+    if (!card.postal || card.score < SURFACE_MIN) continue;
+    const cur = mapByState[card.postal];
+    if (!cur) {
+      mapByState[card.postal] = {
+        score: card.score,
+        severity: severityLabel(card.score),
+        count: 1,
+        top: card.title,
+      };
+    } else {
+      cur.count += 1;
+      if (card.score > cur.score) {
+        cur.score = card.score;
+        cur.severity = severityLabel(card.score);
+        cur.top = card.title;
+      }
+    }
+  }
+
+  return {
+    profileId: p.id,
+    label,
+    kind,
+    meta,
+    surfaced,
+    filtered,
+    filteredOut: filtered.length,
+    totalItems,
+    mapByState,
+  };
+}
+
+function summaryFrom(p: ProfileRow): ProfileSummary {
+  const { label, kind, meta } = deriveLabels(p);
+  return {
+    id: p.id,
+    label,
+    kind,
+    meta,
+    businessTypes: p.business_types,
+    jurisdictions: p.jurisdictions,
+  };
+}
+
+/**
+ * Read the full dashboard from the DB. Returns null when there is no real data
+ * yet (no active profiles or zero judgments) so the caller can fall back to the
+ * seeded board. Throws are caught by the caller (DB unreachable → seeded).
+ */
+export async function computeLiveDashboard(): Promise<DashboardData | null> {
+  const pool = getPool();
+
+  const profilesRes = await pool.query<ProfileRow>(
+    `SELECT p.id, p.org_id, o.name, p.business_types, p.jurisdictions, p.concern_text
+       FROM org_profiles p
+       JOIN organizations o ON o.id = p.org_id
+      WHERE p.is_active = true
+      ORDER BY p.created_at ASC`,
+  );
+  if (profilesRes.rows.length === 0) return null;
+
+  const totalRes = await pool.query<{ count: string }>(`SELECT count(*)::text AS count FROM items`);
+  const totalItems = Number(totalRes.rows[0]?.count ?? 0);
+  if (totalItems === 0) return null;
+
+  const boards: Record<string, BoardData> = {};
+  const profiles: ProfileSummary[] = [];
+  let anyJudged = false;
+
+  for (const p of profilesRes.rows) {
+    const rows = await judgedRowsForOrg(p.org_id);
+    if (rows.length > 0) anyJudged = true;
+    profiles.push(summaryFrom(p));
+    boards[p.id] = boardFromRows(p, rows, totalItems);
+  }
+
+  // No org has any scored items yet → let the caller use the seeded board so the
+  // UI is never empty before the first `npm run score`.
+  if (!anyJudged) return null;
+
+  return { boards, profiles, demoMode: false };
+}

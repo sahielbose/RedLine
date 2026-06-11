@@ -1,5 +1,5 @@
 /**
- * / — the marketing site (parchment + etching hero, compare, how-it-works,
+ * / - the marketing site (parchment + etching hero, compare, how-it-works,
  * open-source, CTA). Server component: the hero mini-app's map is the REAL
  * board for the importer profile, computed through the actual engine.
  */

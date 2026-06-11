@@ -286,8 +286,12 @@ export class CongressClient implements SourceClient {
    * the new watermark = max updateDate seen (else the request's toDateTime).
    */
   async fetchSince(cursor: string | null): Promise<{ items: NormalizedItem[]; cursor: string }> {
-    const toDateTime = this.now().toISOString();
-    const fromDateTime = cursor ?? this.defaultFrom();
+    // Congress.gov rejects sub-second precision (400) — it wants YYYY-MM-DDTHH:MM:SSZ.
+    // The cursor we persist can carry milliseconds (from updateDate), so strip here
+    // at the query boundary regardless of the source.
+    const noMs = (iso: string) => iso.replace(/\.\d{3}(Z|[+-]\d{2}:?\d{2})$/, "$1");
+    const toDateTime = noMs(this.now().toISOString());
+    const fromDateTime = noMs(cursor ?? this.defaultFrom());
 
     const items: NormalizedItem[] = [];
     let maxUpdate: string | null = null;
@@ -300,7 +304,9 @@ export class CongressClient implements SourceClient {
           format: "json",
           fromDateTime,
           toDateTime,
-          sort: "updateDate+asc",
+          // Value is "updateDate asc"; URLSearchParams encodes the space to '+',
+          // yielding the gateway's documented `sort=updateDate+asc`.
+          sort: "updateDate asc",
           limit: PAGE_LIMIT,
           offset,
         },

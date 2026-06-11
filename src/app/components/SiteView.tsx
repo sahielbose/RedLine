@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * / — the marketing site, ported from the reference prototype: fixed nav,
+ * / - the marketing site, ported from the reference prototype: fixed nav,
  * parchment + etching hero with a live mini-app window (the REAL board for the
  * importer profile, computed server-side and passed in), old-way-vs-RedLine,
  * how-it-works, open-source, CTA, footer. Navigation to the dashboard is
@@ -17,9 +17,9 @@ import { TileMap } from "@/app/components/TileMap";
 /* ---------- copy (the reference prototype is our copy) ---------- */
 
 const STEPS: [string, string, string][] = [
-  ["01", "Tell us what you are", "Two minutes of onboarding builds your business profile — what you do, where you operate, what would hurt you. The profile is the filter."],
+  ["01", "Tell us what you are", "Two minutes of onboarding builds your business profile - what you do, where you operate, what would hurt you. The profile is the filter."],
   ["02", "We read everything", "Continuous ingestion from Congress, the Federal Register, and all 50 state legislatures. Every change lands in an append-only history."],
-  ["03", "You get a scored brief", "A 0–5 threat score and a plain-English memo per item — what it does, where it is, who it hits — every claim cited and verified against the source."],
+  ["03", "You get a scored brief", "A 0-5 threat score and a plain-English memo per item - what it does, where it is, who it hits - every claim cited and verified against the source."],
   ["04", "Nothing moves without you", "Memos are drafts until you approve them. Then the digest goes out on your schedule, and the tracker follows every item you care about."],
 ];
 
@@ -113,7 +113,7 @@ export function SiteView({ heroBoard, heroHome = [] }: { heroBoard: BoardData; h
             <h1 className="h1">130,000 bills are moving right now.<br /><span className="em">A few are aimed at you.</span></h1>
             <p className="sub">
               RedLine reads every bill and rule across Congress and all 50 states, scores what threatens
-              <b> your</b> business, and briefs you in plain English — with receipts. The watch a $30K-a-month
+              <b> your</b> business, and briefs you in plain English - with receipts. The watch a $30K-a-month
               lobbyist runs for big companies, open-sourced for everyone else.
             </p>
             <div style={{ display: "flex", gap: 11, flexWrap: "wrap" }}>
@@ -134,7 +134,7 @@ export function SiteView({ heroBoard, heroHome = [] }: { heroBoard: BoardData; h
               <div className="chrome">
                 <div className="dots"><span className="dot" /><span className="dot" /><span className="dot" /></div>
                 <div className="tabs"><span className="tab on">Overview</span><span className="tab">Bills</span><span className="tab">Alerts</span></div>
-                <div className="sync"><span><span className="syncdot" /> Scored live · demo data</span></div>
+                <div className="sync"><span><span className="syncdot" /> Scored live · real bills and rules</span></div>
               </div>
               <div style={{ position: "relative", padding: "16px 16px 22px", background: "linear-gradient(180deg,#FBFAF7,#F6F3EE)" }}>
                 <span className="pill"><MapPin size={11} /> Viewing as {heroBoard.label}</span>
@@ -171,17 +171,17 @@ export function SiteView({ heroBoard, heroHome = [] }: { heroBoard: BoardData; h
           <p className="h2sub">Regulatory intelligence has been theater priced for lobbying shops. We took the theater out and open-sourced the rest.</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 18, marginTop: 30 }}>
             <Cmp
-              old="An AI announces a confident percentage that a bill passes — a number nobody can audit, trained on nothing it will show you. Confidence is easy to generate. It just isn't evidence."
-              neu="We don't predict votes and we don't invent dollar figures. We show you the bill, where it is, what changed, and what it actually says — every claim cited to the source text and verified by code, every analysis a draft until you approve it. You bring the judgment."
+              old="An AI announces a confident percentage that a bill passes - a number nobody can audit, trained on nothing it will show you. Confidence is easy to generate. It just isn't evidence."
+              neu="We don't predict votes and we don't invent dollar figures. We show you the bill, where it is, what changed, and what it actually says - every claim cited to the source text and verified by code, every analysis a draft until you approve it. You bring the judgment."
             />
             <Cmp
               old="Built for lobbying shops: six-figure contracts, onboarding webinars, months to value. Priced so a small business never even sees the demo."
-              neu="Describe your business in two minutes. Your first scored brief lands the same day. MIT-licensed and self-hostable — run it on your own machine, with your own model if you want. The code is public; so is the eval suite that keeps it honest."
+              neu="Describe your business in two minutes. Your first scored brief lands the same day. MIT-licensed and self-hostable - run it on your own machine, with your own model if you want. The code is public; so is the eval suite that keeps it honest."
               delay=".06s"
             />
             <Cmp
-              old="Reads the bill at introduction and moves on. The midnight amendment, the quiet re-referral, the comment window that closes Friday — missed, and you find out when it's law."
-              neu="Every status change is recorded the moment a sync sees it — amendments, hearings, comment deadlines — in an append-only history with a full audit trail. If something you track moves, it surfaces. That's the whole point."
+              old="Reads the bill at introduction and moves on. The midnight amendment, the quiet re-referral, the comment window that closes Friday - missed, and you find out when it's law."
+              neu="Every status change is recorded the moment a sync sees it - amendments, hearings, comment deadlines - in an append-only history with a full audit trail. If something you track moves, it surfaces. That's the whole point."
               delay=".12s"
             />
           </div>
@@ -210,7 +210,7 @@ export function SiteView({ heroBoard, heroHome = [] }: { heroBoard: BoardData; h
               <div>$ git clone github.com/sahielbose/RedLine</div>
               <div>$ colima start</div>
               <div>$ npm run db:up</div>
-              <div>$ cp .env.example .env <span className="c"># keys optional — local fallbacks</span></div>
+              <div>$ cp .env.example .env <span className="c"># keys optional - local fallbacks</span></div>
               <div>{"$ npm i && npm run dev"}</div>
               <div><span className="c"># prove the filter before you trust it</span></div>
               <div>$ npm run eval</div>
@@ -230,7 +230,7 @@ export function SiteView({ heroBoard, heroHome = [] }: { heroBoard: BoardData; h
       {/* cta */}
       <section className="cta etch">
         <h2 className="h2">Stop getting blindsided.</h2>
-        <p className="h2sub" style={{ marginBottom: 26 }}>Open the dashboard, pick a business — or add your own — and watch the board re-score.</p>
+        <p className="h2sub" style={{ marginBottom: 26 }}>Open the dashboard, pick a business - or add your own - and watch the board re-score.</p>
         <Link href="/app" className="btn" style={{ fontSize: 15, padding: "13px 22px", textDecoration: "none" }}>
           Open the dashboard <ArrowRight size={16} />
         </Link>
@@ -238,7 +238,7 @@ export function SiteView({ heroBoard, heroHome = [] }: { heroBoard: BoardData; h
 
       <footer className="foot">
         <span className="wordmark" style={{ fontSize: 16 }}>RED<span className="bar">|</span>LINE</span>
-        <span>Built in the open · MIT licensed · demo includes labeled sample state data pending live ingestion.</span>
+        <span>Built in the open · MIT licensed · scoring live bills and rules from Congress, the Federal Register, and the states.</span>
         <a className="lnk" href={GITHUB_URL} target="_blank" rel="noreferrer"
           style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--hero-ink)" }}><Github size={15} /> sahielbose/RedLine</a>
       </footer>

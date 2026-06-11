@@ -18,8 +18,11 @@
     "eval": "LLM_PROVIDER=local EMBEDDER=hash tsx evals/run.ts",
     "eval:live": "tsx evals/run.ts",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx db/migrate.ts",
-    "db:seed": "tsx db/seed.ts",
+    "db:migrate": "tsx --env-file-if-exists=.env db/migrate.ts",
+    "db:seed": "tsx --env-file-if-exists=.env db/seed.ts",
+    "ingest": "tsx --env-file-if-exists=.env src/jobs/sync.ts ingest",
+    "score": "tsx --env-file-if-exists=.env src/jobs/sync.ts score",
+    "sync": "tsx --env-file-if-exists=.env src/jobs/sync.ts sync",
     "db:up": "docker rm -f redline-db >/dev/null 2>&1 || true; docker run -d --name redline-db -e POSTGRES_USER=redline -e POSTGRES_PASSWORD=redline -e POSTGRES_DB=redline -p 5433:5432 -v redline-pgdata:/var/lib/postgresql/data pgvector/pgvector:pg16 && echo 'waiting for postgres...' && for i in $(seq 1 30); do docker exec redline-db pg_isready -U redline >/dev/null 2>&1 && break; sleep 1; done && echo 'db ready on :5433'",
     "db:down": "docker rm -f redline-db",
     "lint": "next lint"

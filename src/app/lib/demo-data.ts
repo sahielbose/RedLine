@@ -1,9 +1,9 @@
 /**
- * Seeded demo dataset for the dashboard (spec §2, §12). Lets the whole app —
- * including the signature "Viewing as" re-scoring and the US threat map — run
+ * Seeded demo dataset for the dashboard (spec §2, §12). Lets the whole app -
+ * including the signature "Viewing as" re-scoring and the US threat map - run
  * with ZERO keys/DB via the local heuristic judge + hash embedder.
  *
- * All copy is ORIGINAL / paraphrased (clone the idea, not anyone's brand — spec
+ * All copy is ORIGINAL / paraphrased (clone the idea, not anyone's brand - spec
  * §15). Federal anchors mirror the verified eval items (§11); state items are
  * paraphrased, plausible illustrations spanning several states so the map shades
  * differently per business. Provenance strings are sourced framings, never
@@ -26,14 +26,14 @@ export interface DemoItem {
   stage: "proposed" | "comment_open" | "finalized" | "in_effect" | "contested_vacated";
   last_action_date: string;
   comment_close_date?: string | null;
-  /** Sourced framing shown on the THREAT card — never an invented figure. */
+  /** Sourced framing shown on the THREAT card - never an invented figure. */
   provenance?: string;
   /** Official public portal for the ACTION card (no PII; portals only). */
   action_url?: string;
   /** Marks items added in the last sync window (NEW badge). */
   is_new?: boolean;
   /** Honest labeling (spec §15): state items are paraphrased illustrations until
-   *  live ingestion runs — the UI badges them SAMPLE. Federal anchors are real. */
+   *  live ingestion runs - the UI badges them SAMPLE. Federal anchors are real. */
   sample?: boolean;
 }
 
@@ -166,7 +166,7 @@ export const DEMO_ITEMS: DemoItem[] = [
     stage: "in_effect",
     last_action_date: "2025-08-29",
     provenance:
-      "Began as a China/Hong Kong-specific suspension, then extended to all origins — a pattern other trade actions have followed.",
+      "Began as a China/Hong Kong-specific suspension, then extended to all origins - a pattern other trade actions have followed.",
     action_url: "https://www.federalregister.gov/",
     is_new: true,
   },
@@ -198,7 +198,7 @@ export const DEMO_ITEMS: DemoItem[] = [
     type: "final_rule",
     identifier: "FR-2025-14967",
     agency: "Food and Drug Administration",
-    title: "Food traceability recordkeeping (FSMA 204) — compliance date extended",
+    title: "Food traceability recordkeeping (FSMA 204) - compliance date extended",
     summary:
       "Additional traceability recordkeeping for listed foods; the compliance date was extended. Applies to those who manufacture, process, pack, or hold listed foods.",
     full_text:
@@ -399,7 +399,7 @@ export const DEMO_ITEMS: DemoItem[] = [
     last_action_date: "2026-02-02",
     action_url: "https://www.legis.ga.gov/",
   },
-  // A pure decoy (no module match for anyone) — proves precision in the feed.
+  // A pure decoy (no module match for anyone) - proves precision in the feed.
   {
     id: "fmcsa-hos",
     source: "federal_register",

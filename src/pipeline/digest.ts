@@ -3,12 +3,12 @@
  *
  * The digest is the ONLY sender in RedLine, and it sends APPROVED-ONLY:
  *
- *   - `buildDigestHtml(...)` is PURE — it renders a self-contained HTML email
+ *   - `buildDigestHtml(...)` is PURE - it renders a self-contained HTML email
  *     from already-decided rows. No I/O, no clock, no DB. It echoes the RedLine
  *     warm/navy palette inline (email clients ignore <style>/external CSS), is
  *     severity-ordered, HTML-escapes every interpolated field (these strings
  *     originate from external bills/rules), shows ONLY provided fields, invents
- *     nothing (no fabricated figures/probabilities/vote counts — spec §15), and
+ *     nothing (no fabricated figures/probabilities/vote counts - spec §15), and
  *     carries a footer stating it contains only human-APPROVED items.
  *
  *   - `sendDigest(db, mailer, …)` is the DB path. It loads the org's APPROVED
@@ -16,7 +16,7 @@
  *     once via the injected `Mailer`, then transitions each sent memo
  *     approved → "sent" through `markSent` (the review-queue state machine,
  *     which throws from any non-approved state). If there are no approved memos
- *     it does NOT send — it returns a skipped result. There is no path here that
+ *     it does NOT send - it returns a skipped result. There is no path here that
  *     touches a draft: the SQL filter is `status = "approved"`, and `markSent`
  *     itself only legalizes approved → sent (spec §8, CLAUDE.md rule 10).
  *
@@ -48,9 +48,9 @@ export interface DigestItem {
   jurisdiction?: string | null;
   whatItDoes?: string | null;
   recommendedAction?: string | null;
-  /** Official public portal / bill page link only — never PII (spec §15 rule 4). */
+  /** Official public portal / bill page link only - never PII (spec §15 rule 4). */
   actionUrl?: string | null;
-  /** Factual upcoming event — a real comment-close date, never a prediction. */
+  /** Factual upcoming event - a real comment-close date, never a prediction. */
   commentCloseDate?: string | null;
 }
 
@@ -63,7 +63,7 @@ export interface BuildDigestHtmlArgs {
   items: DigestItem[];
 }
 
-// ── RedLine palette echo (spec §12 tokens) — inlined; email clients drop CSS ──
+// ── RedLine palette echo (spec §12 tokens) - inlined; email clients drop CSS ──
 const C = {
   canvas: "#EFE3D8",
   surface: "#FFFFFF",
@@ -101,7 +101,7 @@ function severityColors(label: SeverityLabel): { fg: string; bg: string } {
 
 /**
  * Escape a string for safe interpolation into HTML text/attributes. Item titles
- * and summaries come from external sources — they must never be trusted as HTML.
+ * and summaries come from external sources - they must never be trusted as HTML.
  * `&` first so we don't double-escape the entities we then introduce.
  */
 function esc(value: string): string {
@@ -138,10 +138,10 @@ function severityRank(label: SeverityLabel): number {
 function renderItem(item: DigestItem): string {
   const label = rowSeverity(item);
   const { fg, bg } = severityColors(label);
-  const identifier = item.identifier ? esc(item.identifier) : "—";
+  const identifier = item.identifier ? esc(item.identifier) : "-";
   const scoreText = typeof item.score === "number" ? ` · ${esc(String(item.score))}/5` : "";
 
-  // Build the optional metadata + body rows; OMIT anything not provided — we
+  // Build the optional metadata + body rows; OMIT anything not provided - we
   // never render a placeholder figure or an invented field (spec §15).
   const rows: string[] = [];
 
@@ -232,7 +232,7 @@ export function buildDigestHtml(args: BuildDigestHtmlArgs): string {
   return (
     `<!doctype html><html><head><meta charset="utf-8"/>` +
     `<meta name="viewport" content="width=device-width,initial-scale=1"/>` +
-    `<title>RedLine — ${esc(periodLabel)}</title></head>` +
+    `<title>RedLine - ${esc(periodLabel)}</title></head>` +
     `<body style="margin:0;padding:0;background:${C.canvas};">` +
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" ` +
     `style="background:${C.canvas};">` +
@@ -258,7 +258,7 @@ export function buildDigestHtml(args: BuildDigestHtmlArgs): string {
     `<div style="font-family:${SANS};font-size:12px;line-height:1.5;color:${C.muted};` +
     `padding-top:12px;">` +
     `This digest contains only items a human reviewer has <strong>approved</strong> in the ` +
-    `RedLine review queue — nothing is sent automatically. Figures and dates shown are taken ` +
+    `RedLine review queue - nothing is sent automatically. Figures and dates shown are taken ` +
     `directly from the source filing; RedLine never invents impact numbers or vote predictions.` +
     `</div></td></tr>` +
     `</table></td></tr></table></body></html>`
@@ -273,7 +273,7 @@ export interface SendDigestArgs {
   to: string;
   /** Human period label for the subject + header, e.g. "Daily digest · Jun 11". */
   periodLabel: string;
-  /** Override the subject; defaults to `RedLine — ${periodLabel}`. */
+  /** Override the subject; defaults to `RedLine - ${periodLabel}`. */
   subject?: string;
   /** Profile/business label for the "viewing as" line; defaults to orgId. */
   orgLabel?: string;
@@ -300,7 +300,7 @@ export interface SendDigestResult {
  * skipped result.
  *
  * Ordering: most severe first (memo.recommended_action "call_counsel" outranks
- * "comment" etc. is NOT used for severity — we order by the linked judgment-free
+ * "comment" etc. is NOT used for severity - we order by the linked judgment-free
  * fields we have, falling back to the item's own ordering). We render with the
  * pure `buildDigestHtml`, so the wire format is identical to the tested path.
  */
@@ -352,10 +352,10 @@ export async function sendDigest(
     items: digestItems,
   });
 
-  const subject = args.subject ?? `RedLine — ${periodLabel}`;
+  const subject = args.subject ?? `RedLine - ${periodLabel}`;
 
   // Send ONCE. Only after a successful send do we transition memos approved → sent
-  // (so a send failure leaves them approved for the next run — at-least-once, not
+  // (so a send failure leaves them approved for the next run - at-least-once, not
   // a silent drop).
   await mailer.send({ to, subject, html });
 

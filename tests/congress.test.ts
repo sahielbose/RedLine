@@ -174,6 +174,7 @@ describe("CongressClient.fetchSince — hermetic (injected fetchImpl)", () => {
 
     const { items, cursor } = await client.fetchSince("2026-06-01T00:00:00.000Z");
     expect(items).toHaveLength(0);
-    expect(cursor).toBe("2026-06-11T00:00:00.000Z"); // toDateTime watermark
+    // toDateTime watermark, with sub-second precision stripped (Congress.gov 400s on milliseconds).
+    expect(cursor).toBe("2026-06-11T00:00:00Z");
   });
 });

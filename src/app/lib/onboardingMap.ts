@@ -1,6 +1,6 @@
 /**
  * Maps the "Add your business" form (the two-minute onboarding modal) to the
- * engine's OnboardingAnswers (spec §10). Pure — used by /api/profiles and
+ * engine's OnboardingAnswers (spec §10). Pure - used by /api/profiles and
  * unit-tested directly. The mapping is where the form's plain-English toggles
  * become the typed attributes the relevance gates key on.
  */
@@ -31,7 +31,7 @@ const TYPE_LABEL: Record<BusinessType, string> = {
   hardware: "Hardware",
 };
 
-/** Form → the engine's OnboardingAnswers. Federal ("us") is always included —
+/** Form → the engine's OnboardingAnswers. Federal ("us") is always included -
  *  federal rules apply wherever you operate. */
 export function toOnboardingAnswers(form: AddBusinessForm): OnboardingAnswers {
   const types = form.types as BusinessType[];

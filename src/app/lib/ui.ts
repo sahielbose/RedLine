@@ -1,10 +1,10 @@
 /**
  * Client-safe UI helpers shared by the site + app views (ported from the
- * reference prototype). Pure data/lookup — no React, no server imports.
+ * reference prototype). Pure data/lookup - no React, no server imports.
  */
 import type { SurfacedCard } from "@/app/lib/board";
 
-/** Severity band for a 0–5 score → CSS token key + label. */
+/** Severity band for a 0-5 score → CSS token key + label. */
 export type BandKey = "critical" | "high" | "monitor" | "low";
 export function band(score: number): { key: BandKey; label: string } {
   if (score >= 5) return { key: "critical", label: "Critical" };

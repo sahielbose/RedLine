@@ -11,7 +11,7 @@ import { TILES } from "@/app/lib/ui";
 import type { StateThreat } from "@/app/lib/board";
 
 export interface TileMapProps {
-  /** BoardData.mapByState — lowercase-postal → threat summary. */
+  /** BoardData.mapByState - lowercase-postal → threat summary. */
   map: Record<string, StateThreat>;
   selected?: string | null;
   onSelect?: (state: string | null) => void;
