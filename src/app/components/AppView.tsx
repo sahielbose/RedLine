@@ -849,7 +849,7 @@ export function AppView({ data }: { data: DashboardData }) {
                   <span className="chip"><MapPin size={11} style={{ verticalAlign: "-1px", marginRight: 3 }} />{displayJurisdiction(open.postal)}</span>
                   {open.sample && <span className="chip sample">SAMPLE</span>}
                 </div>
-                <div style={{ fontFamily: "var(--serif)", fontSize: 19, fontWeight: 700, lineHeight: 1.32 }}>{open.title}</div>
+                <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: "-0.3px", lineHeight: 1.32 }}>{open.title}</div>
                 <div style={{ marginTop: 12 }}>
                   <span className="pill" style={sevStyle(openBand.key)}>
                     <OpenBandIcon size={14} /> {openBand.label} · {open.score}/5 for {board.label}
