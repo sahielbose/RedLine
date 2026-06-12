@@ -192,8 +192,31 @@ function collectSubjects(raw: RawCongressBill): string[] {
  * carries a `textVersions` sub-resource URL (or the bill's canonical `url`). We
  * record whichever is present so `fetchFullText` can resolve it lazily.
  */
+/** Bill type → the public Congress.gov URL segment. */
+const CONGRESS_URL_SEGMENT: Record<string, string> = {
+  HR: "house-bill",
+  S: "senate-bill",
+  HJRES: "house-joint-resolution",
+  SJRES: "senate-joint-resolution",
+  HCONRES: "house-concurrent-resolution",
+  SCONRES: "senate-concurrent-resolution",
+  HRES: "house-resolution",
+  SRES: "senate-resolution",
+};
+
+/** The PUBLIC, human-facing Congress.gov bill page - NOT the api.congress.gov
+ *  endpoint (raw.textVersions.url / raw.url), which requires an API key and
+ *  returns JSON. We build it from congress + type + number so the "official
+ *  source" link a user clicks lands on a readable page, never an API error. */
 function fullTextUrl(raw: RawCongressBill): string | null {
-  return raw.textVersions?.url?.trim() || raw.url?.trim() || null;
+  const congress = raw.congress;
+  const type = (raw.type ?? "").toUpperCase().trim();
+  const number = raw.number == null ? "" : String(raw.number).trim();
+  const segment = CONGRESS_URL_SEGMENT[type];
+  if (congress && segment && number) {
+    return `https://www.congress.gov/bill/${congress}th-congress/${segment}/${number}`;
+  }
+  return null; // no public link we can build; never expose the key-gated API url
 }
 
 // ── Pure normalize ───────────────────────────────────────────────────────────

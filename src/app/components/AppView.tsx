@@ -421,6 +421,11 @@ export function AppView({ data }: { data: DashboardData }) {
 
   const openBand = open ? band(open.score) : null;
   const OpenBandIcon = openBand ? BAND_ICON[openBand.key] : null;
+  // Days until the public comment window closes (real, from comment_close_date).
+  const commentDaysLeft =
+    open?.commentCloseDate != null
+      ? Math.ceil((new Date(open.commentCloseDate + "T00:00:00Z").getTime() - Date.now()) / 86_400_000)
+      : null;
 
   return (
     <div className="rx">
@@ -443,14 +448,6 @@ export function AppView({ data }: { data: DashboardData }) {
               ))}
             </div>
             <div className="sync">
-              {data.demoMode ? (
-                <>
-                  <span className="chip sample">Sample state data</span>
-                  <span><span className="syncdot" /> Scored live · seeded demo</span>
-                </>
-              ) : (
-                <span><span className="syncdot" /> Live · real bills and rules</span>
-              )}
               <Link className="sitelink" href="/">Site <ExternalLink size={11} /></Link>
             </div>
           </div>
@@ -754,12 +751,52 @@ export function AppView({ data }: { data: DashboardData }) {
                 <div className="memo"><h4>Why this matters to you</h4><p>{open.justification}</p></div>
                 <div className="memo"><h4>What it does</h4><p>{open.memo?.what_it_does ?? open.summary}</p></div>
                 <div className="memo"><h4>Status & next steps</h4><p>{open.memo?.status_and_next_steps ?? open.status}</p></div>
+                {(open.commentCloseDate || open.provenance || open.lastActionDate) && (
+                  <div className="memo">
+                    <h4>Key dates</h4>
+                    <ul className="keydates">
+                      {open.commentCloseDate && (
+                        <li className={commentDaysLeft !== null && commentDaysLeft >= 0 && commentDaysLeft <= 30 ? "urgent" : ""}>
+                          <b>Public comment window</b>
+                          <span>
+                            closes {open.commentCloseDate}
+                            {commentDaysLeft !== null && commentDaysLeft >= 0
+                              ? ` · ${commentDaysLeft} day${commentDaysLeft === 1 ? "" : "s"} left to comment`
+                              : commentDaysLeft !== null
+                                ? " · window closed"
+                                : ""}
+                          </span>
+                        </li>
+                      )}
+                      {open.provenance && (
+                        <li>
+                          <b>Latest action</b>
+                          <span>{open.provenance}</span>
+                        </li>
+                      )}
+                      {open.lastActionDate && (
+                        <li>
+                          <b>Last updated</b>
+                          <span>{open.lastActionDate}</span>
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                )}
                 <div className="memo">
                   <h4>Recommended action</h4>
                   <span className="pill" style={{ marginTop: 2 }}>
                     {ACTION_LABEL[open.memo?.recommended_action ?? "monitor"] ?? "Monitor"}
                     {open.memo?.recommended_action_note ? " · " + open.memo.recommended_action_note : ""}
                   </span>
+                  {open.actionUrl && (
+                    <a className="source-link" href={open.actionUrl} target="_blank" rel="noreferrer">
+                      {open.commentCloseDate
+                        ? "Read the full rule and submit a comment on the official portal"
+                        : "Read the full text on the official source"}
+                      <ExternalLink size={12} />
+                    </a>
+                  )}
                 </div>
                 {open.memo?.impact_estimate && (
                   <div className="memo"><h4>Estimated impact</h4><p>{open.memo.impact_estimate}</p></div>
@@ -783,7 +820,7 @@ export function AppView({ data }: { data: DashboardData }) {
                     </div>
                   ) : (
                     <p style={{ color: "var(--muted)" }}>
-                      Citations populate from the source text once live ingestion runs{open.sample ? " - this is sample data" : ""}.
+                      A cited memo is drafted for higher-priority items. The official source linked above has the full, authoritative text.
                     </p>
                   )}
                 </div>

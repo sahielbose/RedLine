@@ -98,11 +98,13 @@ describe("normalizeCongressBill — pure mapping", () => {
     expect(sres.comment_close_date).toBeNull();
   });
 
-  it("carries sponsors, subjects (policyArea + legislative), and a text URL", () => {
+  it("carries sponsors, subjects (policyArea + legislative), and the PUBLIC congress.gov URL", () => {
     expect(hr.sponsors).toHaveLength(1);
     expect(hr.subjects).toContain("Labor and Employment");
     expect(hr.subjects).toContain("Worker classification");
-    expect(hr.full_text_url).toContain("/bill/119/hr/1234/text");
+    // Public, human-facing page - never the key-gated api.congress.gov endpoint.
+    expect(hr.full_text_url).toBe("https://www.congress.gov/bill/119th-congress/house-bill/1234");
+    expect(hr.full_text_url).not.toContain("api.congress.gov");
   });
 
   it("sets content_hash to contentHashFor(item) (recomputable, deterministic)", () => {
