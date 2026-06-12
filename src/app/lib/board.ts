@@ -96,6 +96,9 @@ export interface DashboardData {
   /** false when the board is reading real ingested data from the DB (live mode),
    *  true when it falls back to the hermetic seeded dataset (no DB / empty DB). */
   demoMode: boolean;
+  /** Uppercase postals of states with ANY ingested state-level items - lets the
+   *  UI say honestly which legislatures are being watched (coverage, spec §15). */
+  stateCoverage: string[];
 }
 
 /** A profile plus the display strings the switcher renders. */
@@ -241,5 +244,13 @@ export async function computeDashboard(): Promise<DashboardData> {
     boards[profile.id] = await computeBoardForProfile(profile);
   }
 
-  return { boards, profiles, demoMode: true };
+  const stateCoverage = [
+    ...new Set(
+      DEMO_ITEMS.map((i) => jurisdictionToPostal(i.jurisdiction))
+        .filter((p): p is string => p !== null)
+        .map((p) => p.toUpperCase()),
+    ),
+  ].sort();
+
+  return { boards, profiles, demoMode: true, stateCoverage };
 }

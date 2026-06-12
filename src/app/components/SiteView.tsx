@@ -1,33 +1,39 @@
 "use client";
 
 /**
- * / - the RedLine marketing site. A calm, editorial, product-as-hero page:
- * refined hero with a live product mockup (the REAL board for the importer
- * profile, computed server-side and passed in), a quantified proof strip,
- * a three-step process, an expanded old-vs-RedLine comparison, a flagship
- * feature showcase, an open-source and trust section, a final CTA, footer.
+ * / - the RedLine marketing site, product-as-hero (spec §12 aesthetic: warm
+ * parchment, antique-engraving panels, one royal-blue accent, restrained
+ * motion). Structure: airy hero → full-width product window on an engraving
+ * panel (the REAL board for the importer profile, computed server-side) →
+ * proof strip → two feature splits whose mocks render real engine output →
+ * scroll-active process → comparison → open source & trust → CTA → footer.
  *
- * Navigation to the dashboard is routing (<Link href="/app">), not view state.
- * The SiteView export signature and props contract are preserved.
+ * Honesty rules carry into marketing: the hero map, threat cards, citations,
+ * and severity scores are real pipeline output for a real profile - no
+ * invented dollar figures, no fake vote counts, our own copy throughout.
  */
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Activity,
   ArrowRight,
+  ArrowUpRight,
+  Check,
   CheckCircle2,
   FileText,
   Github,
+  Loader2,
   Lock,
   MapPin,
   ScanSearch,
   ShieldCheck,
 } from "lucide-react";
 import type { BoardData, SurfacedCard } from "@/app/lib/board";
+import { DEMO_ITEMS } from "@/app/lib/demo-data";
 import { band, sevStyle } from "@/app/lib/ui";
-import { TileMap } from "@/app/components/TileMap";
+import { USMap } from "@/app/components/USMap";
 
-/* ---------- copy (honest, specific) ---------- */
+/* ---------- copy (ours - honest, specific) ---------- */
 
 const GITHUB_URL = "https://github.com/sahielbose/RedLine";
 
@@ -77,29 +83,6 @@ const COMPARE: [string, string][] = [
   ],
 ];
 
-const FEATURES: { icon: typeof ScanSearch; head: string; body: string }[] = [
-  {
-    icon: ScanSearch,
-    head: "Agentic search, in plain English",
-    body: "Ask a question the way you would ask a lawyer. Agents retrieve live bills and rules with hybrid keyword and vector search, then Claude judges each one scoped to your business, streamed step by step.",
-  },
-  {
-    icon: MapPin,
-    head: "A threat board built for you",
-    body: "A US map you can click to focus any state plus the federal docket. Every tile is shaded by your real exposure, not a generic heat map, so you see at a glance where the pressure is.",
-  },
-  {
-    icon: Activity,
-    head: "A live activity feed",
-    body: "The latest real actions as they land: introductions, amendments, hearings, and comment windows. Each event links straight to the item and its score so nothing quiet slips past you.",
-  },
-  {
-    icon: FileText,
-    head: "Bill detail with verified citations",
-    body: "Key dates, a link to the official portal to read and comment, and citations checked by code against the source text. If a claim is not in the document, it does not ship.",
-  },
-];
-
 const TRUST: [string, string][] = [
   ["MIT licensed, end to end.", "No closed core and no usage meter. Read the pipeline, fork it, and self-host it on your own machine with your own model."],
   ["Citations verified by code.", "Every quoted claim is checked against the source text before it reaches you. A citation that does not match the document is dropped, not guessed."],
@@ -133,83 +116,256 @@ function useReveal() {
   return ref;
 }
 
-/* ---------- building blocks ---------- */
+/* ---------- hero product window (the money shot, real board) ---------- */
 
-function Cmp({ old, neu, delay }: { old: string; neu: string; delay?: string }) {
+function HeroShot({ heroBoard, heroHome }: { heroBoard: BoardData; heroHome: string[] }) {
   const ref = useReveal();
-  return (
-    <div className="cmp reveal" ref={ref} style={delay ? { transitionDelay: delay } : undefined}>
-      <div className="old"><div className="tag">Incumbents</div><p>{old}</p></div>
-      <div className="new"><div className="tag">RedLine</div><p>{neu}</p></div>
-    </div>
-  );
-}
+  const rail = heroBoard.surfaced.slice(0, 6);
+  const spot: SurfacedCard | null = heroBoard.surfaced[0] ?? null;
+  const b = spot ? band(spot.score) : null;
+  const move = spot ? (spot.memo?.what_it_does || spot.summary || spot.justification) : "";
 
-function StepCard({ n, t, b, i }: { n: string; t: string; b: string; i: number }) {
-  const ref = useReveal();
   return (
-    <div className="step reveal" ref={ref} style={{ transitionDelay: `${i * 70}ms` }}>
-      <div className="n">{n}</div><h4>{t}</h4><p>{b}</p>
-    </div>
-  );
-}
-
-function FeatureBlock({
-  icon: Icon,
-  head,
-  body,
-  i,
-}: {
-  icon: typeof ScanSearch;
-  head: string;
-  body: string;
-  i: number;
-}) {
-  const ref = useReveal();
-  return (
-    <div className="feat reveal" ref={ref} style={{ transitionDelay: `${i * 70}ms` }}>
-      <div className="feat-ico"><Icon size={18} /></div>
-      <h4>{head}</h4>
-      <p>{body}</p>
-    </div>
-  );
-}
-
-/* A compact, believable threat row inside the hero product window, fed by the
- * REAL board (real identifier, score, and memo text). One idea per row. */
-function HeroRow({ card }: { card: SurfacedCard }) {
-  const b = band(card.score);
-  const why = card.memo?.what_it_does ?? card.justification ?? card.summary;
-  return (
-    <div className="hero-row">
-      <div className="hero-stamp" style={sevStyle(b.key)}>
-        <span className="hsc">{card.score}</span>
-        <span className="hsl">{b.label}</span>
-      </div>
-      <div className="hero-rowbody">
-        <div className="hero-rowtop">
-          <span className="mono hero-rowid">{card.identifier}</span>
-          {card.isNew && <span className="chip new">NEW</span>}
+    <div className="hero-shot reveal" ref={ref}>
+      <div className="engraving shot-panel">
+        <div className="window shot-window">
+          <div className="chrome">
+            <div className="dots"><span className="dot" /><span className="dot" /><span className="dot" /></div>
+            <div className="tabs">
+              <span className="tab on">Overview</span><span className="tab">Bills</span><span className="tab">Alerts</span>
+            </div>
+            <div className="sync"><span><span className="syncdot" /> Scored live</span></div>
+          </div>
+          <div className="shot-body">
+            <aside className="shot-rail">
+              <div className="shot-railh">Surfaced threats <span className="ct mono">{heroBoard.surfaced.length}</span></div>
+              {rail.map((c, i) => (
+                <div className={"shot-item" + (i === 0 ? " on" : "")} key={c.id}>
+                  <span className="mono si-id">
+                    {c.identifier}
+                    {c.isNew && <span className="chip new">NEW</span>}
+                  </span>
+                  <span className="si-t">{c.title}</span>
+                </div>
+              ))}
+              <div className="shot-railf">Monitoring {heroBoard.totalItems.toLocaleString()}+ items across 50 states + Congress</div>
+            </aside>
+            <div className="shot-stage">
+              <div className="shot-viewing">
+                <span className="pill"><MapPin size={11} /> Viewing as {heroBoard.label}</span>
+                <span className="shot-meta mono">{heroBoard.meta || "Per-business exposure"}</span>
+              </div>
+              <USMap map={heroBoard.mapByState} home={heroHome} compact active={spot?.postal ? spot.postal.toUpperCase() : null} />
+              {spot && b && (
+                <>
+                  <div className="fcard shot-fc shot-fc-threat">
+                    <div className="head">
+                      <span className="pill" style={sevStyle(b.key)}>Threat</span>
+                      <span className="mono fc-id">{spot.identifier}</span>
+                      {spot.isNew && <span className="chip new">NEW</span>}
+                    </div>
+                    <h5>{spot.title}</h5>
+                    <div className="box">
+                      <div className="boxlbl">What it does</div>
+                      {move.length > 110 ? move.slice(0, 110).trimEnd() + "…" : move}
+                    </div>
+                  </div>
+                  <div className="fcard shot-fc shot-fc-impact">
+                    <div className="head">
+                      <span className="pill" style={sevStyle(b.key)}>{b.label} · {spot.score}/5</span>
+                    </div>
+                    <div className="box">
+                      <div className="boxlbl">Why it hits this business</div>
+                      {spot.justification.length > 110 ? spot.justification.slice(0, 110).trimEnd() + "…" : spot.justification}
+                    </div>
+                  </div>
+                  <div className="fcard shot-fc shot-fc-action">
+                    <div className="head"><span className="pill">Action</span></div>
+                    <span className="actbtn">
+                      {spot.memo?.recommended_action === "comment" ? "Comment" : "Monitor"} <ArrowUpRight size={12} />
+                    </span>
+                    <div className="org">Official public portal only.</div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         </div>
-        <div className="hero-rowtitle">{card.title}</div>
-        <div className="hero-rowwhy">{why.slice(0, 96)}…</div>
       </div>
     </div>
+  );
+}
+
+/* ---------- feature split 1: the agent run (mock mirrors the REAL stages) -- */
+
+const AGENT_STEPS: { label: string; detail?: string; state: "done" | "run" | "wait" }[] = [
+  { label: "Reading your question", state: "done" },
+  { label: "Category gate", detail: "food · goods · data privacy", state: "done" },
+  { label: "Searching live bills and rules", detail: "keyword + vector", state: "done" },
+  { label: "Judging 50 candidates against your profile", state: "run" },
+  { label: "Drafting the cited memo", state: "wait" },
+];
+
+function AgentMock() {
+  return (
+    <div className="window splitwin agentmock">
+      <div className="chrome">
+        <div className="dots"><span className="dot" /><span className="dot" /><span className="dot" /></div>
+        <div className="sync"><span>RedLine · Search</span></div>
+      </div>
+      <div className="am-body">
+        <div className="am-bar">
+          <ScanSearch size={15} style={{ color: "var(--muted)", flexShrink: 0 }} />
+          <span className="am-q">Which new rules hit a California food maker that imports packaging?</span>
+          <span className="am-run"><Loader2 size={12} className="spin" /> Working</span>
+        </div>
+        <div className="am-head mono">REDLINE AGENT RUN · 3/5 TASKS</div>
+        <ol className="am-steps">
+          {AGENT_STEPS.map((s, i) => (
+            <li key={s.label} className={"am-step " + s.state} style={{ animationDelay: `${0.25 + i * 0.45}s` }}>
+              <span className="am-ico">
+                {s.state === "done" ? <Check size={12} /> : s.state === "run" ? <Loader2 size={12} className="spin" /> : null}
+              </span>
+              <span>{s.label}</span>
+              {s.detail && <span className="am-detail mono">{s.detail}</span>}
+            </li>
+          ))}
+        </ol>
+        <div className="am-foot mono">
+          <span>4,400+ live items</span><span>·</span><span>3 sources</span><span>·</span><span>every judgment logged</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- feature split 2: clause-level brief (REAL memo + citation) ---- */
+
+function ClauseMock({ spot }: { spot: SurfacedCard | null }) {
+  if (!spot) return null;
+  const b = band(spot.score);
+  const demoItem = DEMO_ITEMS.find((d) => d.id === spot.id);
+  const sourceText = demoItem?.full_text ?? spot.summary;
+  const cite = spot.memo?.citations.find((c) => c.verified) ?? spot.memo?.citations[0] ?? null;
+  // Split the source text around the verified snippet so it renders highlighted
+  // in context - the same substring check the pipeline enforces (spec §8).
+  let before = sourceText, mark = "", after = "";
+  if (cite) {
+    const idx = sourceText.indexOf(cite.snippet);
+    if (idx >= 0) {
+      before = sourceText.slice(0, idx);
+      mark = cite.snippet;
+      after = sourceText.slice(idx + cite.snippet.length);
+    } else {
+      mark = cite.snippet;
+      before = "";
+      after = "";
+    }
+  }
+
+  return (
+    <div className="window splitwin clausemock">
+      <div className="chrome">
+        <div className="dots"><span className="dot" /><span className="dot" /><span className="dot" /></div>
+        <div className="sync"><span>RedLine · Memo</span></div>
+      </div>
+      <div className="cm-body">
+        <div className="cm-doc">
+          <div className="cm-doctop">
+            <span className="chip id">{spot.identifier}</span>
+            <span className="chip">{spot.status}</span>
+          </div>
+          <div className="cm-doctitle">{spot.title}</div>
+          <p className="cm-text">
+            {before}
+            {mark && <mark>{mark}</mark>}
+            {after}
+          </p>
+        </div>
+        <div className="cm-memo">
+          <div className="cm-sec">
+            <div className="boxlbl"><FileText size={10} style={{ verticalAlign: "-1px" }} /> Plain English</div>
+            <p>{spot.memo?.what_it_does ?? spot.summary}</p>
+          </div>
+          <div className="cm-sec">
+            <div className="boxlbl">Why this matters <span className="pill cm-sev" style={sevStyle(b.key)}>{b.label} · {spot.score}/5</span></div>
+            <p>{spot.justification}</p>
+          </div>
+          {cite && (
+            <div className="cm-sec">
+              <div className="boxlbl">Source</div>
+              <p className="cm-cite">&ldquo;{cite.snippet.length > 90 ? cite.snippet.slice(0, 90).trimEnd() + "…" : cite.snippet}&rdquo;</p>
+              {cite.verified && <span className="ok"><CheckCircle2 size={11} /> citation verified in source by code</span>}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- process: three steps, scroll-activated ---------- */
+
+function Process() {
+  const [active, setActive] = useState(0);
+  const [pinned, setPinned] = useState(false);
+  const secRef = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const el = secRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver((es) => es.forEach((e) => setInView(e.isIntersecting)), { threshold: 0.35 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!inView || pinned || reduced()) return;
+    const t = setInterval(() => setActive((a) => (a + 1) % STEPS.length), 3500);
+    return () => clearInterval(t);
+  }, [inView, pinned]);
+
+  return (
+    <section className="section paper" id="process" ref={secRef}>
+      <div className="section-in">
+        <div className="eyebrow center">Our process</div>
+        <h2 className="h2 h2-light">Three steps from noise to a decision.</h2>
+        <p className="h2sub">Tell us your business, let the agents read and score every item against you, and act on a cited brief.</p>
+        <div className="process2">
+          {STEPS.map(([n, t, b], i) => (
+            <button
+              key={n}
+              className={"pstep" + (active === i ? " live" : "")}
+              onMouseEnter={() => { setActive(i); setPinned(true); }}
+              onMouseLeave={() => setPinned(false)}
+              onFocus={() => { setActive(i); setPinned(true); }}
+              onBlur={() => setPinned(false)}
+              aria-pressed={active === i}
+            >
+              <span className="ps-rule" />
+              <span className="ps-n mono">{n}</span>
+              <span className="ps-t">{t}</span>
+              <span className="ps-b">{b}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
 /* ---------- site ---------- */
 
 export function SiteView({ heroBoard, heroHome = [] }: { heroBoard: BoardData; heroHome?: string[] }) {
-  // The product window is fed by the REAL board: top scored items for the
-  // importer profile, with a floating spotlight card on the map.
-  const rows = heroBoard.surfaced.slice(0, 3);
-  const heroCard = heroBoard.surfaced.length > 0 ? heroBoard.surfaced[0] : null;
-  const heroBand = heroCard ? band(heroCard.score) : null;
-  const heroMove = heroCard ? (heroCard.memo?.what_it_does ?? heroCard.summary) : "";
+  const spot = heroBoard.surfaced[0] ?? null;
+  const r1 = useReveal();
+  const r2 = useReveal();
+  const r3 = useReveal();
+  const r4 = useReveal();
 
   return (
-    <div className="rx">
+    <div className="rx site2">
       <nav className="nav">
         <span className="wordmark">RED<span className="bar">|</span>LINE</span>
         <a className="lnk" href="#process">Process</a>
@@ -225,68 +381,33 @@ export function SiteView({ heroBoard, heroHome = [] }: { heroBoard: BoardData; h
         </span>
       </nav>
 
-      {/* hero */}
-      <header className="hero">
-        <div className="hero-in heroflex">
-          <div className="heroleft">
-            <div className="eyebrow">Open-source regulatory watch</div>
-            <h1 className="h1 h1-light">
-              See the bills aimed<br />at your business,<br /><span className="em">before they land.</span>
-            </h1>
-            <p className="sub">
-              RedLine reads every live bill and rule across Congress, the Federal Register, and the
-              states, scores what threatens <b>your</b> business, and briefs you in plain English with
-              cited, code-verified receipts. The watch a lobbying shop runs for big companies, open for
-              everyone else.
-            </p>
-            <div className="hero-cta">
-              <Link href="/app" className="btn btn-blue btn-lg" style={{ textDecoration: "none" }}>
-                Open the app <ArrowRight size={16} />
-              </Link>
-              <a className="btn ghost" href={GITHUB_URL} target="_blank" rel="noreferrer"
-                style={{ textDecoration: "none" }}><Github size={15} /> View the source</a>
-            </div>
-            <div className="ticker">
-              {TICKER.map((t) => <span className="tick" key={t}>{t}</span>)}
-            </div>
+      {/* hero: airy statement, then the full-width product window */}
+      <header className="hero2">
+        <div className="hero2-in">
+          <div className="eyebrow">Open-source regulatory watch</div>
+          <h1 className="h1 hero2-h1">
+            See the bills aimed at your business,
+            <br />
+            <span className="em">before they land.</span>
+          </h1>
+          <p className="sub hero2-sub">
+            RedLine reads every live bill and rule across Congress, the Federal Register, and the
+            states, scores what threatens <b>your</b> business, and briefs you in plain English with
+            cited, code-verified receipts. The watch a lobbying shop runs for big companies, open
+            for everyone else.
+          </p>
+          <div className="hero-cta">
+            <Link href="/app" className="btn btn-blue btn-lg" style={{ textDecoration: "none" }}>
+              Open the app <ArrowRight size={16} />
+            </Link>
+            <a className="btn ghost" href={GITHUB_URL} target="_blank" rel="noreferrer"
+              style={{ textDecoration: "none" }}><Github size={15} /> View the source</a>
           </div>
-
-          {/* hero product window (real board) */}
-          <div className="heroright">
-            <div className="window hero-window">
-              <div className="chrome">
-                <div className="dots"><span className="dot" /><span className="dot" /><span className="dot" /></div>
-                <div className="tabs"><span className="tab on">Overview</span><span className="tab">Search</span><span className="tab">Activity</span></div>
-                <div className="sync"><span><span className="syncdot" /> Scored live</span></div>
-              </div>
-              <div className="hero-windowbody">
-                <div className="hero-maprow">
-                  <span className="pill"><MapPin size={11} /> Viewing as {heroBoard.label}</span>
-                  <span className="hero-mapnote">{heroBoard.meta || "Per-business exposure"}</span>
-                </div>
-                <div className="hero-mapwrap">
-                  <TileMap map={heroBoard.mapByState} compact home={heroHome} />
-                  {heroCard && heroBand && (
-                    <div className="fcard" style={{ top: 40, left: 10, maxWidth: 232, padding: "12px 13px" }}>
-                      <div className="head">
-                        <span className="pill" style={sevStyle(heroBand.key)}>{heroBand.label}</span>
-                        <span className="mono" style={{ fontSize: 11, fontWeight: 700 }}>{heroCard.identifier}</span>
-                      </div>
-                      <h5 style={{ fontSize: 12.5 }}>{heroCard.title}</h5>
-                      <div className="box" style={{ fontSize: 11 }}>
-                        <div className="boxlbl">What it does</div>
-                        {heroMove.slice(0, 104)}…
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="hero-feed">
-                  {rows.map((c) => <HeroRow key={c.id} card={c} />)}
-                </div>
-              </div>
-            </div>
+          <div className="ticker">
+            {TICKER.map((t) => <span className="tick" key={t}>{t}</span>)}
           </div>
         </div>
+        <HeroShot heroBoard={heroBoard} heroHome={heroHome} />
       </header>
 
       {/* proof strip */}
@@ -301,17 +422,56 @@ export function SiteView({ heroBoard, heroHome = [] }: { heroBoard: BoardData; h
         </div>
       </section>
 
-      {/* process */}
-      <section className="section paper" id="process">
+      {/* feature split 1: reads + scores */}
+      <section className="section paper" id="features">
         <div className="section-in">
-          <div className="eyebrow center">Our process</div>
-          <h2 className="h2 h2-light">Three steps from noise to a decision.</h2>
-          <p className="h2sub">Tell us your business, let the agents read and score every item against you, and act on a cited brief.</p>
-          <div className="steps steps-3">
-            {STEPS.map(([n, t, b], i) => <StepCard key={n} n={n} t={t} b={b} i={i} />)}
+          <div className="split reveal" ref={r1}>
+            <div className="split-copy">
+              <div className="eyebrow">The engine</div>
+              <h2 className="h2 h2-light h2-left">Reads the whole docket. Scores what actually hits you.</h2>
+              <p className="split-p">
+                Keyword alerts miss the rider that breaks your pricing model. RedLine&apos;s agents
+                read each live bill and rule, gate it by category, prefilter it by meaning, and have
+                a judge score it 0&ndash;5 against your specific business &mdash; with the reason logged,
+                every time.
+              </p>
+              <ul className="split-list">
+                <li><ScanSearch size={15} /> Hybrid keyword + vector retrieval over the live corpus</li>
+                <li><Activity size={15} /> A 0&ndash;5 rubric judge scoped to your profile, streamed step by step</li>
+                <li><ShieldCheck size={15} /> Every judgment logged with model + prompt version</li>
+              </ul>
+            </div>
+            <div className="engraving split-panel">
+              <AgentMock />
+            </div>
+          </div>
+
+          {/* feature split 2: the cited brief */}
+          <div className="split split-rev reveal" ref={r2}>
+            <div className="split-copy">
+              <div className="eyebrow">The brief</div>
+              <h2 className="h2 h2-light h2-left">The brief a $500-an-hour consultant would write. In seconds.</h2>
+              <p className="split-p">
+                You are reading a rule at 10pm wondering if it is going to be a problem. The memo
+                tells you what it means in plain English, why it matters to your business, and where
+                it is in the process &mdash; and every claim is checked by code against the source
+                text before it reaches you.
+              </p>
+              <ul className="split-list">
+                <li><FileText size={15} /> What it does · status &amp; next steps · who is affected · the action</li>
+                <li><CheckCircle2 size={15} /> Citations verified as exact substrings of the source</li>
+                <li><Lock size={15} /> Drafts until a human approves &mdash; nothing auto-sends</li>
+              </ul>
+            </div>
+            <div className="engraving split-panel">
+              <ClauseMock spot={spot} />
+            </div>
           </div>
         </div>
       </section>
+
+      {/* process */}
+      <Process />
 
       {/* compare */}
       <section className="section warm" id="compare">
@@ -319,35 +479,24 @@ export function SiteView({ heroBoard, heroHome = [] }: { heroBoard: BoardData; h
           <div className="eyebrow center">The difference</div>
           <h2 className="h2 h2-light">Incumbents versus RedLine.</h2>
           <p className="h2sub">Regulatory intelligence was priced for lobbying shops and built as a black box. We took both apart.</p>
-          <div className="cmp-stack">
-            {COMPARE.map(([old, neu], i) => (
-              <Cmp key={old} old={old} neu={neu} delay={`${i * 0.06}s`} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* features */}
-      <section className="section paper" id="features">
-        <div className="section-in">
-          <div className="eyebrow center">Flagship features</div>
-          <h2 className="h2 h2-light">Everything is real and working in the app.</h2>
-          <p className="h2sub">No mockups behind the demo. Each of these runs the same pipeline you can read in the source.</p>
-          <div className="feats">
-            {FEATURES.map((f, i) => (
-              <FeatureBlock key={f.head} icon={f.icon} head={f.head} body={f.body} i={i} />
+          <div className="cmp-stack reveal" ref={r3}>
+            {COMPARE.map(([old, neu]) => (
+              <div className="cmp" key={old.slice(0, 24)}>
+                <div className="old"><div className="tag">Incumbents</div><p>{old}</p></div>
+                <div className="new"><div className="tag">RedLine</div><p>{neu}</p></div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       {/* open source + trust */}
-      <section className="section warm" id="oss">
+      <section className="section paper" id="oss">
         <div className="section-in">
           <div className="eyebrow center">Open source and honest by design</div>
           <h2 className="h2 h2-light">Trust you can read the source of.</h2>
           <p className="h2sub">The product is the filter and the proof. Both are public, both are auditable.</p>
-          <div className="oss">
+          <div className="oss reveal" ref={r4}>
             <div className="codecard">
               <div><span className="c"># clone it and run it yourself</span></div>
               <div>$ git clone github.com/sahielbose/RedLine</div>

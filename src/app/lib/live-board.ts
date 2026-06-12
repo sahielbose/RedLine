@@ -293,7 +293,16 @@ export async function computeLiveDashboard(): Promise<DashboardData | null> {
   // UI is never empty before the first `npm run score`.
   if (!anyJudged) return null;
 
-  return { boards, profiles, demoMode: false };
+  const coverageRes = await pool.query<{ jurisdiction: string }>(
+    `SELECT DISTINCT jurisdiction FROM items WHERE jurisdiction <> 'us'`,
+  );
+  const stateCoverage = coverageRes.rows
+    .map((r) => jurisdictionToPostal(r.jurisdiction))
+    .filter((p): p is string => p !== null)
+    .map((p) => p.toUpperCase())
+    .sort();
+
+  return { boards, profiles, demoMode: false, stateCoverage };
 }
 
 /* ─────────────────────────────────────────────────────────────────────────

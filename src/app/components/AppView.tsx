@@ -26,8 +26,8 @@ import {
   type BandKey,
 } from "@/app/lib/ui";
 import { POSTAL_TO_NAME } from "@/app/lib/geo";
-import { TileMap } from "@/app/components/TileMap";
-import { Spotlight } from "@/app/components/Spotlight";
+import { USMap } from "@/app/components/USMap";
+import { MapCards } from "@/app/components/MapCards";
 import { Toasts, useToasts } from "@/app/components/Toasts";
 import { AgentSearch } from "@/app/components/AgentSearch";
 
@@ -145,6 +145,9 @@ export function AppView({ data }: { data: DashboardData }) {
   const [showLow, setShowLow] = useState(false);
   const [selState, setSelState] = useState<string | null>(null);
   const [spotId, setSpotId] = useState<string | null>(null);
+  const [cycleIdx, setCycleIdx] = useState(0);
+  const [autoCycle, setAutoCycle] = useState(true);
+  const [hoverPause, setHoverPause] = useState(false);
   const [freq, setFreq] = useState<"daily" | "weekly">("daily");
   const [customProfiles, setCustomProfiles] = useState<ProfileSummary[]>([]);
   const [customBoards, setCustomBoards] = useState<Record<string, BoardData>>({});
@@ -290,10 +293,19 @@ export function AppView({ data }: { data: DashboardData }) {
   /* overview: rail list (jurisdiction-focused) + the single highlighted item */
   const railList = useMemo(() => surfaced.filter((s) => inFocus(s.postal)), [surfaced, inFocus]);
   const federalCount = useMemo(() => surfaced.filter((s) => s.postal === null).length, [surfaced]);
-  const spotItem: SurfacedCard | null = useMemo(
-    () => railList.find((i) => i.id === spotId) ?? railList[0] ?? null,
-    [railList, spotId],
-  );
+  /* the item the floating cards describe: pinned by a rail click, else the
+   * auto-cycle position (8s per item, paused on hover / by the toggle) */
+  const CYCLE_MS = 8000;
+  const activeItem: SurfacedCard | null = useMemo(() => {
+    if (spotId) return railList.find((i) => i.id === spotId) ?? railList[0] ?? null;
+    return railList.length ? railList[cycleIdx % railList.length] : null;
+  }, [railList, spotId, cycleIdx]);
+  const cyclePaused = Boolean(spotId) || !autoCycle || railList.length < 2;
+  useEffect(() => {
+    if (tab !== "overview" || cyclePaused || hoverPause || reduced()) return;
+    const t = setInterval(() => setCycleIdx((i) => i + 1), CYCLE_MS);
+    return () => clearInterval(t);
+  }, [tab, cyclePaused, hoverPause]);
   /* activity feed: relevant items, newest action first (real last-action dates) */
   const activityList = useMemo(
     () =>
@@ -303,10 +315,11 @@ export function AppView({ data }: { data: DashboardData }) {
         .sort((a, b) => (a.lastActionDate < b.lastActionDate ? 1 : a.lastActionDate > b.lastActionDate ? -1 : 0)),
     [surfaced, inFocus],
   );
-  /* reset focus + highlight when switching businesses */
+  /* reset focus + highlight + cycle position when switching businesses */
   useEffect(() => {
     setSelState(null);
     setSpotId(null);
+    setCycleIdx(0);
   }, [activeId]);
 
   /* memo slide-over */
@@ -517,9 +530,9 @@ export function AppView({ data }: { data: DashboardData }) {
                     {railList.map((it) => (
                       <button
                         key={it.id}
-                        className={"titem" + (spotItem && spotItem.id === it.id ? " on" : "")}
-                        onClick={() => setSpotId(it.id)}
-                        aria-pressed={spotItem?.id === it.id}
+                        className={"titem" + (activeItem && activeItem.id === it.id ? " on" : "")}
+                        onClick={() => setSpotId(spotId === it.id ? null : it.id)}
+                        aria-pressed={activeItem?.id === it.id}
                       >
                         <span className="ti mono">
                           {it.identifier}
@@ -553,15 +566,44 @@ export function AppView({ data }: { data: DashboardData }) {
                       <span className="map-hint">Click a state to focus</span>
                     )}
                   </div>
-                  <TileMap map={board.mapByState} selected={selState} onSelect={(s) => { setSelState(s); setSpotId(null); }} home={homeStates(profile.jurisdictions)} />
+                  <div className="mapstage">
+                    <USMap
+                      map={board.mapByState}
+                      selected={selState}
+                      active={activeItem?.postal ? activeItem.postal.toUpperCase() : null}
+                      onSelect={(s) => { setSelState(s); setSpotId(null); setCycleIdx(0); }}
+                      home={homeStates(profile.jurisdictions)}
+                    />
+                    <MapCards
+                      item={activeItem}
+                      counter={`${railList.length ? ((railList.findIndex((i) => i.id === activeItem?.id) + railList.length) % railList.length) + 1 : 0} / ${railList.length}`}
+                      cycleMs={CYCLE_MS}
+                      cycleKey={`${activeItem?.id ?? "none"}-${cycleIdx}`}
+                      paused={cyclePaused || hoverPause}
+                      onTogglePause={() => {
+                        if (spotId) { setSpotId(null); setAutoCycle(true); }
+                        else setAutoCycle((v) => !v);
+                      }}
+                      onHoverChange={setHoverPause}
+                    />
+                  </div>
                   <div className="legend">
                     <span><span className="sw" style={{ background: "var(--map-hot)" }} />High threat</span>
                     <span><span className="sw" style={{ background: "var(--map-mid)" }} />Watching</span>
                     <span><span className="sw" style={{ background: "var(--map-empty)" }} />Clear</span>
                     <span><span className="sw" style={{ border: "1.5px dashed var(--critical)", background: "transparent" }} />Home state</span>
                   </div>
-                  <div className="map-help">Click any state to see what affects a business there: that state&apos;s bills plus all federal rules. Click again to clear.</div>
-                  <Spotlight item={spotItem} />
+                  <div className="map-help">
+                    {Object.keys(board.mapByState).length === 0
+                      ? `No state-level threats surfaced for ${board.label} yet - states shade as scored items land. Watching ${
+                          data.stateCoverage.length === 0
+                            ? "the federal docket"
+                            : data.stateCoverage.length > 8
+                              ? `${data.stateCoverage.length} state legislatures plus the full federal docket`
+                              : `${data.stateCoverage.join(", ")} plus the full federal docket`
+                        }.`
+                      : "Click any state to see what affects a business there: that state's bills plus all federal rules. Click again to clear."}
+                  </div>
                 </div>
               </div>
             </main>
