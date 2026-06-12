@@ -216,7 +216,7 @@ export function AgentSearch({
               <div className="sc-title">{r.title}</div>
               <div className="sc-just">{r.justification}</div>
               <div className="sc-foot">
-                {r.status && <span className="pill">{r.status}</span>}
+                {r.status && <span className="sc-status">{r.status}</span>}
                 {r.lastActionDate && <span className="sc-date">Updated {r.lastActionDate}</span>}
                 {r.commentCloseDate && (
                   <span className="sc-date sc-deadline">Comments close {r.commentCloseDate}</span>

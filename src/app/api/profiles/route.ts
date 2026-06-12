@@ -13,7 +13,10 @@ import { NextResponse } from "next/server";
 import { buildProfile } from "@/pipeline/onboarding";
 import { getEmbedder } from "@/lib/embedder";
 import { computeBoardForProfile, profileSummaryOf, type BoardProfile } from "@/app/lib/board";
+import { computeBoardForProfileLive } from "@/app/lib/live-board";
 import { AddBusinessSchema, formMeta, toOnboardingAnswers } from "@/app/lib/onboardingMap";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   let body: unknown;
@@ -47,11 +50,26 @@ export async function POST(req: Request) {
     meta: formMeta(form),
   };
 
-  const board = await computeBoardForProfile(boardProfile);
+  // Score the new business against REAL ingested data (Stage 0/A prefilter +
+  // heuristic judge over live items). Fall back to the seeded dataset only when
+  // the DB is empty or unreachable, so "Add your business" always returns a board.
+  let board;
+  let live = false;
+  try {
+    const liveBoard = await computeBoardForProfileLive(boardProfile);
+    if (liveBoard) {
+      board = liveBoard;
+      live = true;
+    }
+  } catch (err) {
+    console.error("[profiles] live scoring unavailable, using seeded fallback:", err);
+  }
+  if (!board) board = await computeBoardForProfile(boardProfile);
 
   return NextResponse.json({
     profile: profileSummaryOf(boardProfile),
     concernText: profile.concern_text,
+    live,
     board,
   });
 }

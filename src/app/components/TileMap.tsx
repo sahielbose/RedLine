@@ -34,10 +34,13 @@ export function TileMap({ map, selected = null, onSelect, home = [], compact }: 
           <button
             key={st}
             className={cls}
-            style={{ gridColumn: c + 1, gridRow: r + 1, animationDelay: `${i * 8}ms`, fontSize: compact ? 8 : undefined }}
-            title={info ? `${st} · ${info.count} item${info.count > 1 ? "s" : ""} · top: ${info.top}` : `${st} · clear`}
+            style={{ gridColumn: c + 1, gridRow: r + 1, fontSize: compact ? 8 : undefined }}
+            title={info
+              ? `${st}: ${info.count} state item${info.count > 1 ? "s" : ""} (top: ${info.top}). Click to focus ${st} + Federal.`
+              : `${st}: no state-level items yet. Click to focus ${st} + Federal.`}
             onClick={() => onSelect && onSelect(selected === st ? null : st)}
-            aria-label={`${st}${info ? `, ${info.count} relevant item${info.count > 1 ? "s" : ""}` : ", no relevant items"}`}
+            aria-pressed={selected === st}
+            aria-label={`Focus ${st} plus federal${info ? `, ${info.count} state item${info.count > 1 ? "s" : ""}` : ", no state items yet"}`}
           >
             {st}
           </button>

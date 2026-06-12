@@ -12,10 +12,13 @@
  * - every field is a column the pipeline populated from a verifiable source.
  */
 import { getPool } from "@/lib/db";
+import { env } from "@/lib/env";
 import { severityLabel, type MemoContent, type RecommendedAction } from "@/lib/types";
 import { jurisdictionToPostal } from "@/app/lib/geo";
+import { heuristicJudge, type JudgeableItem } from "@/pipeline/relevance";
 import type {
   BoardData,
+  BoardProfile,
   DashboardData,
   FilteredCard,
   ProfileSummary,
@@ -291,4 +294,138 @@ export async function computeLiveDashboard(): Promise<DashboardData | null> {
   if (!anyJudged) return null;
 
   return { boards, profiles, demoMode: false };
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * Live scoring for a NEWLY added business ("Add your business" / /api/profiles).
+ * Unlike computeLiveDashboard (which reads judgments the scorer already logged),
+ * a brand-new profile has no cached judgments, so we score it on the spot:
+ * Stage 0 (category gate) + Stage A (jurisdiction + pgvector cosine prefilter)
+ * over the REAL ingested items, then the deterministic heuristic judge (instant,
+ * free) for each candidate. Returns the same BoardData shape; null if the DB has
+ * no items so the caller can fall back to the seeded board.
+ * ──────────────────────────────────────────────────────────────────────── */
+interface ItemRow {
+  id: string;
+  source: string;
+  jurisdiction: string;
+  type: string;
+  identifier: string | null;
+  title: string;
+  summary: string | null;
+  status: string | null;
+  stage: string | null;
+  last_action_date: Date | null;
+  last_action_text: string | null;
+  comment_close_date: Date | null;
+  introduced_date: Date | null;
+  categories: string[];
+  full_text_url: string | null;
+  full_text: string | null;
+  raw: unknown;
+  first_seen_at: Date | null;
+}
+
+export async function computeBoardForProfileLive(profile: BoardProfile): Promise<BoardData | null> {
+  const pool = getPool();
+  const totalRes = await pool.query<{ c: string }>(`SELECT count(*)::text AS c FROM items`);
+  const totalItems = Number(totalRes.rows[0]?.c ?? 0);
+  if (totalItems === 0) return null;
+
+  const jurs = profile.jurisdictions?.length ? profile.jurisdictions : ["us"];
+  const cats = profile.subscribed_categories ?? [];
+  if (cats.length === 0) return null;
+  const limit = Math.max(1, Math.min(200, env().PREFILTER_LIMIT));
+  const emb = profile.embedding && profile.embedding.length ? profile.embedding : null;
+  const order = emb ? `i.embedding <=> $1::vector ASC` : `i.last_action_date DESC NULLS LAST`;
+  const vec = emb ? `[${emb.join(",")}]` : "[]";
+
+  const { rows } = await pool.query<ItemRow>(
+    `SELECT i.id, i.source, i.jurisdiction, i.type, i.identifier, i.title, i.summary,
+            i.status, i.stage, i.last_action_date, i.last_action_text, i.comment_close_date,
+            i.introduced_date, i.categories, i.full_text_url, i.full_text, i.raw, i.first_seen_at
+       FROM items i
+      WHERE i.embedding IS NOT NULL AND i.jurisdiction = ANY($2) AND i.categories && $3
+      ORDER BY ${order}
+      LIMIT ${limit}`,
+    [vec, jurs, cats],
+  );
+
+  const surfaced: SurfacedCard[] = [];
+  const filtered: FilteredCard[] = [];
+  for (const row of rows) {
+    const item: JudgeableItem = {
+      title: row.title,
+      summary: row.summary,
+      source: row.source,
+      agency: agencyOf(row.source, row.raw),
+      categories: row.categories ?? [],
+      identifier: row.identifier,
+      jurisdiction: row.jurisdiction,
+      type: row.type,
+      full_text: row.full_text,
+    };
+    const j = heuristicJudge(profile, item);
+    if (j.score >= SURFACE_MIN) {
+      surfaced.push(
+        surfacedCardFrom({
+          ...(row as unknown as JudgedRow),
+          score: j.score,
+          justification: j.justification,
+          matched_concern: j.matched_concern,
+          what_it_does: null,
+          status_and_next_steps: null,
+          who_is_affected: null,
+          recommended_action: null,
+          recommended_action_note: null,
+          impact_estimate: null,
+          citations: null,
+          confidence: null,
+          memo_status: null,
+        }),
+      );
+    } else {
+      filtered.push({
+        id: row.id,
+        identifier: row.identifier ?? "",
+        title: row.title,
+        source: row.source,
+        categories: row.categories ?? [],
+        score: j.score,
+        justification: j.justification,
+        sample: false,
+      });
+    }
+  }
+
+  surfaced.sort((a, b) => b.score - a.score || (b.lastActionDate > a.lastActionDate ? 1 : -1));
+  filtered.sort((a, b) => b.score - a.score);
+
+  const mapByState: Record<string, StateThreat> = {};
+  for (const card of surfaced) {
+    if (!card.postal || card.score < SURFACE_MIN) continue;
+    const cur = mapByState[card.postal];
+    if (!cur) {
+      mapByState[card.postal] = { score: card.score, severity: severityLabel(card.score), count: 1, top: card.title };
+    } else {
+      cur.count += 1;
+      if (card.score > cur.score) {
+        cur.score = card.score;
+        cur.severity = severityLabel(card.score);
+        cur.top = card.title;
+      }
+    }
+  }
+
+  return {
+    profileId: profile.id,
+    label: profile.label,
+    kind: profile.kind ?? "Your business",
+    meta: profile.meta ?? "",
+    surfaced,
+    filtered,
+    filteredOut: filtered.length,
+    totalItems,
+    mapByState,
+  };
 }

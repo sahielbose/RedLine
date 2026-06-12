@@ -84,14 +84,50 @@ export const BIZ_TYPES = [
   { id: "software", label: "Software / SaaS" },
   { id: "goods", label: "Goods / e-commerce" },
   { id: "food", label: "Food" },
-  { id: "hardware", label: "Hardware" },
+  { id: "hardware", label: "Hardware / electronics" },
 ] as const;
 
-export const ATTR_OPTIONS = [
-  { id: "subscription", label: "Sells subscriptions / auto-renewal" },
-  { id: "imports", label: "Imports goods or components" },
-  { id: "foodMaker", label: "Makes, packs, or holds food" },
-  { id: "contractors", label: "Uses 1099 contractors" },
+/** Boolean attribute toggles, grouped into the modal's sections. Each `id` maps
+ *  to an engine attribute in onboardingMap.ts; nothing here is decorative. */
+export const ATTR_SECTIONS: { title: string; toggles: { id: string; label: string }[] }[] = [
+  {
+    title: "People",
+    toggles: [
+      { id: "has_w2", label: "We have W-2 employees on payroll" },
+      { id: "contractors", label: "We use 1099 independent contractors" },
+    ],
+  },
+  {
+    title: "Selling & money",
+    toggles: [
+      { id: "sells_physical_goods", label: "We sell physical goods" },
+      { id: "subscription", label: "We sell auto-renewing subscriptions / recurring billing" },
+      { id: "marketplace", label: "We sell on third-party marketplaces (Amazon, Etsy, Walmart)" },
+      { id: "imports", label: "We import goods, components, or ingredients from abroad" },
+    ],
+  },
+  {
+    title: "Data & customers",
+    toggles: [
+      { id: "online_data", label: "We collect customer data online (accounts, analytics, payments)" },
+      { id: "children_data", label: "We collect personal data from children under 13 (COPPA)" },
+    ],
+  },
+];
+
+/** Food supply-chain role (FSMA precision lever, spec §11 D). */
+export const FOOD_ROLES = [
+  { id: "make_pack_hold", label: "Make, pack, or hold food (manufacture / process / store)" },
+  { id: "distribute", label: "Distribute food" },
+  { id: "serve_only", label: "Serve only (dine-in / prepared on site)" },
 ] as const;
 
-export const STATE_OPTIONS = ["US", "CA", "TX", "NY", "WA", "IL", "CO", "GA"] as const;
+/** "US" = federal (always on, added in the modal). The 50 states + DC are the
+ *  selectable jurisdictions: each one is the ONLY way that state's legislature
+ *  (Open States) reaches the judge, so coverage is real, not cosmetic. */
+export const STATE_OPTIONS = [
+  "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN",
+  "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH",
+  "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT",
+  "VT", "VA", "WA", "WV", "WI", "WY",
+] as const;

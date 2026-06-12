@@ -17,7 +17,9 @@ describe("toOnboardingAnswers", () => {
       name: "Driftwood Coffee Co.",
       types: ["food", "goods"],
       states: ["US", "CA", "TX"],
-      attrs: { foodMaker: true, imports: true },
+      employees: 25,
+      foodRole: "make_pack_hold",
+      attrs: { serves_food: true, imports: true },
     });
     const a = toOnboardingAnswers(form);
     expect(a.jurisdictions).toEqual(["us", "us-ca", "us-tx"]);
@@ -27,7 +29,8 @@ describe("toOnboardingAnswers", () => {
     expect(a.attributes.imports_goods).toBe(true);
     expect(a.attributes.sells_physical_goods).toBe(true);
     expect(a.attributes.sells_subscription).toBe(false);
-    expect(formMeta(form)).toBe("Food · Goods · CA, TX");
+    expect(a.attributes.employees).toBe(25);
+    expect(formMeta(form)).toBe("Food · Goods · CA, TX · 25 staff");
   });
 
   it("leaves the FSMA role unset for a food business that does not make/pack/hold", () => {

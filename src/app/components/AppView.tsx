@@ -15,13 +15,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   AlertTriangle, ArrowRight, Bookmark, BookmarkCheck, Building2, CheckCircle2,
-  ChevronDown, Circle, ClipboardCheck, Cpu, Eye, Mail, MapPin,
+  ChevronDown, Circle, ClipboardCheck, Cpu, ExternalLink, Eye, Mail, MapPin,
   Plus, Quote, Search, ShieldAlert, ShoppingBag, Sparkles, UtensilsCrossed, X,
   type LucideIcon,
 } from "lucide-react";
 import type { BoardData, DashboardData, ProfileSummary, SurfacedCard } from "@/app/lib/board";
 import {
-  ACTION_LABEL, ATTR_OPTIONS, BIZ_TYPES, STAGE_LABEL, STAGE_ORDER, STATE_OPTIONS,
+  ACTION_LABEL, ATTR_SECTIONS, BIZ_TYPES, FOOD_ROLES, STAGE_LABEL, STAGE_ORDER, STATE_OPTIONS,
   band, categoryLabel, displayJurisdiction, displaySource, homeStates, sevStyle,
   type BandKey,
 } from "@/app/lib/ui";
@@ -143,6 +143,9 @@ export function AppView({ data }: { data: DashboardData }) {
   const [fTypes, setFTypes] = useState<string[]>([]);
   const [fAttrs, setFAttrs] = useState<Record<string, boolean>>({});
   const [fStates, setFStates] = useState<string[]>(["US"]);
+  const [fEmployees, setFEmployees] = useState("");
+  const [fFoodRole, setFFoodRole] = useState("");
+  const [stateQuery, setStateQuery] = useState("");
 
   /* hydrate persisted custom profiles + marks AFTER mount (no SSR mismatch) */
   useEffect(() => {
@@ -368,16 +371,23 @@ export function AppView({ data }: { data: DashboardData }) {
           name: fName.trim(),
           types: fTypes,
           states: fStates.length ? fStates : ["US"],
+          employees: fEmployees.trim() === "" ? undefined : Number(fEmployees),
+          foodRole: fFoodRole || null,
           attrs: {
-            subscription: Boolean(fAttrs.subscription),
-            imports: Boolean(fAttrs.imports),
-            foodMaker: Boolean(fAttrs.foodMaker),
+            has_w2: Boolean(fAttrs.has_w2),
             contractors: Boolean(fAttrs.contractors),
+            sells_physical_goods: Boolean(fAttrs.sells_physical_goods),
+            subscription: Boolean(fAttrs.subscription),
+            marketplace: Boolean(fAttrs.marketplace),
+            imports: Boolean(fAttrs.imports),
+            serves_food: Boolean(fAttrs.serves_food),
+            online_data: Boolean(fAttrs.online_data),
+            children_data: Boolean(fAttrs.children_data),
           },
         }),
       });
       const json = (await res.json().catch(() => null)) as
-        | { profile?: ProfileSummary; board?: BoardData; error?: string }
+        | { profile?: ProfileSummary; board?: BoardData; error?: string; live?: boolean }
         | null;
       if (res.ok && json?.profile && json.board) {
         const newProfile = json.profile;
@@ -391,7 +401,14 @@ export function AppView({ data }: { data: DashboardData }) {
         setFTypes([]);
         setFAttrs({});
         setFStates(["US"]);
-        toast("Profile created - the engine just re-scored the board for you");
+        setFEmployees("");
+        setFFoodRole("");
+        setStateQuery("");
+        toast(
+          json.live
+            ? "Profile created - scored against live bills and rules for you"
+            : "Profile created - the engine just re-scored the board for you",
+        );
       } else {
         toast(json?.error ?? "Could not create the profile - try again");
       }
@@ -400,18 +417,17 @@ export function AppView({ data }: { data: DashboardData }) {
     } finally {
       setCreating(false);
     }
-  }, [creating, fName, fTypes, fStates, fAttrs, toast]);
+  }, [creating, fName, fTypes, fStates, fAttrs, fEmployees, fFoodRole, toast]);
 
   const openBand = open ? band(open.score) : null;
   const OpenBandIcon = openBand ? BAND_ICON[openBand.key] : null;
 
   return (
     <div className="rx">
-      <div className="app-bg etch">
+      <div className="app-bg">
         <div className="window">
           {/* chrome */}
           <div className="chrome">
-            <div className="dots"><span className="dot" /><span className="dot" /><span className="dot" /></div>
             <div className="tabs" role="tablist">
               {TAB_LIST.map(({ id, label }) => (
                 <button
@@ -422,9 +438,7 @@ export function AppView({ data }: { data: DashboardData }) {
                   onClick={() => setTab(id)}
                 >
                   {label}
-                  {id === "alerts" && pending > 0 && (
-                    <span className="mono" style={{ marginLeft: 6, fontSize: 10, color: "var(--critical)" }}>{pending}</span>
-                  )}
+                  {id === "alerts" && pending > 0 && <span className="tabcount">{pending}</span>}
                 </button>
               ))}
             </div>
@@ -437,7 +451,7 @@ export function AppView({ data }: { data: DashboardData }) {
               ) : (
                 <span><span className="syncdot" /> Live · real bills and rules</span>
               )}
-              <Link className="tab" href="/" style={{ padding: "5px 10px" }}>Site ↗</Link>
+              <Link className="sitelink" href="/">Site <ExternalLink size={11} /></Link>
             </div>
           </div>
 
@@ -564,7 +578,6 @@ export function AppView({ data }: { data: DashboardData }) {
               <div className="feed">
                 {feed.map((r, i) => {
                   const b = band(r.score);
-                  const B = BAND_ICON[b.key];
                   const isTracked = tracked.has(r.id);
                   return (
                     <div
@@ -592,14 +605,15 @@ export function AppView({ data }: { data: DashboardData }) {
                           <span className="chip id">{r.identifier}</span>
                           <span className="chip">{displaySource(r)}</span>
                           {r.categories.map((c) => <span className="chip" key={c}>{categoryLabel(c)}</span>)}
-                          <span className="chip" style={{ background: "var(--surface)", color: "var(--muted)" }}>{STAGE_LABEL[r.stage] ?? r.stage}</span>
+                          {(STAGE_LABEL[r.stage] ?? r.stage) && (
+                            <span className="chip" style={{ background: "var(--surface)", color: "var(--muted)" }}>{STAGE_LABEL[r.stage] ?? r.stage}</span>
+                          )}
                           {r.isNew && <span className="chip new">NEW</span>}
                           {r.sample && <span className="chip sample">SAMPLE</span>}
                         </div>
                         <div className="why">{r.justification}</div>
                       </div>
                       <div className="cright">
-                        <span className="trackbtn" style={{ pointerEvents: "none" }}><B size={14} />{b.label}</span>
                         <button
                           type="button"
                           className={"trackbtn" + (isTracked ? " on" : "")}
@@ -805,7 +819,9 @@ export function AppView({ data }: { data: DashboardData }) {
                 <button className="pclose" style={{ position: "static", marginLeft: "auto" }} onClick={() => setModal(false)} aria-label="Close"><X size={15} /></button>
               </div>
               <p style={{ fontSize: 13, color: "var(--muted)", margin: "8px 0 0", lineHeight: 1.55 }}>
-                This is the two-minute profile. It becomes the filter - the engine re-scores the board for you the moment you save.
+                Tell us what you do and where. Every answer becomes a real scoring input - the engine
+                re-scores the board against live bills and rules the moment you save. Only the name and
+                one business type are required; the rest sharpens what surfaces.
               </p>
             </div>
             <div className="mbody">
@@ -814,12 +830,12 @@ export function AppView({ data }: { data: DashboardData }) {
                 <input id="bizname" type="text" placeholder="e.g. Driftwood Coffee Co." value={fName} onChange={(e) => setFName(e.target.value)} />
               </div>
               <div className="field">
-                <label>What do you do? (pick all that apply)</label>
+                <label>What do you do? <span className="opt-hint">pick all that apply</span></label>
                 <div className="optgrid">
                   {BIZ_TYPES.map((b) => {
                     const Ic = TYPE_ICON[b.id] ?? Sparkles;
                     return (
-                      <button key={b.id} className={"opt" + (fTypes.includes(b.id) ? " on" : "")} onClick={() => flip(fTypes, setFTypes, b.id)}>
+                      <button key={b.id} className={"opt" + (fTypes.includes(b.id) ? " on" : "")} onClick={() => flip(fTypes, setFTypes, b.id)} aria-pressed={fTypes.includes(b.id)}>
                         <Ic size={14} /> {b.label}
                       </button>
                     );
@@ -827,32 +843,98 @@ export function AppView({ data }: { data: DashboardData }) {
                 </div>
               </div>
               <div className="field">
-                <label>Which apply to you?</label>
-                <div className="optgrid">
-                  {ATTR_OPTIONS.map((a) => (
-                    <button key={a.id} className={"opt" + (fAttrs[a.id] ? " on" : "")} onClick={() => setFAttrs((x) => ({ ...x, [a.id]: !x[a.id] }))}>
-                      {a.label}
-                    </button>
-                  ))}
-                </div>
+                <label htmlFor="emp">Roughly how many people work here? <span className="opt-hint">optional</span></label>
+                <input id="emp" type="number" min={0} inputMode="numeric" placeholder="e.g. 25" value={fEmployees} onChange={(e) => setFEmployees(e.target.value)} />
               </div>
+
+              {ATTR_SECTIONS.map((sec) => (
+                <div className="field" key={sec.title}>
+                  <label>{sec.title}</label>
+                  <div className="optgrid">
+                    {sec.toggles.map((t) => (
+                      <button
+                        key={t.id}
+                        className={"opt" + (fAttrs[t.id] ? " on" : "")}
+                        onClick={() => setFAttrs((x) => ({ ...x, [t.id]: !x[t.id] }))}
+                        aria-pressed={!!fAttrs[t.id]}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
               <div className="field">
-                <label>Where do you operate?</label>
+                <label>Food operations</label>
                 <div className="optgrid">
-                  {STATE_OPTIONS.map((s) => (
-                    <button key={s} className={"opt" + (fStates.includes(s) ? " on" : "")} onClick={() => flip(fStates, setFStates, s)}>
-                      {s === "US" ? "All US" : s}
+                  <button
+                    className={"opt" + (fAttrs.serves_food || fTypes.includes("food") ? " on" : "")}
+                    onClick={() => setFAttrs((x) => ({ ...x, serves_food: !x.serves_food }))}
+                    aria-pressed={!!fAttrs.serves_food}
+                  >
+                    We handle food in any way
+                  </button>
+                </div>
+                {(fAttrs.serves_food || fTypes.includes("food")) && (
+                  <div className="optgrid" style={{ marginTop: 8 }}>
+                    {FOOD_ROLES.map((r) => (
+                      <button
+                        key={r.id}
+                        className={"opt" + (fFoodRole === r.id ? " on" : "")}
+                        onClick={() => setFFoodRole(fFoodRole === r.id ? "" : r.id)}
+                        aria-pressed={fFoodRole === r.id}
+                      >
+                        {r.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="field">
+                <label>Where do you operate? <span className="opt-hint">federal is always on</span></label>
+                <div className="optgrid"><span className="opt fed-fixed">US Federal (always on)</span></div>
+                <input
+                  className="state-search"
+                  type="text"
+                  placeholder="Filter states by name or code…"
+                  value={stateQuery}
+                  onChange={(e) => setStateQuery(e.target.value)}
+                  aria-label="Filter states"
+                />
+                <div className="optgrid statesgrid">
+                  {STATE_OPTIONS.filter(
+                    (s) =>
+                      !stateQuery ||
+                      s.includes(stateQuery.toUpperCase()) ||
+                      (POSTAL_TO_NAME[s.toLowerCase()] ?? "").toLowerCase().includes(stateQuery.toLowerCase()),
+                  ).map((s) => (
+                    <button
+                      key={s}
+                      className={"opt state-opt" + (fStates.includes(s) ? " on" : "")}
+                      onClick={() => flip(fStates, setFStates, s)}
+                      title={POSTAL_TO_NAME[s.toLowerCase()] ?? s}
+                      aria-pressed={fStates.includes(s)}
+                    >
+                      {s}
                     </button>
                   ))}
                 </div>
+                {fStates.filter((s) => s !== "US").length > 0 && (
+                  <div className="state-count">
+                    {fStates.filter((s) => s !== "US").length} state{fStates.filter((s) => s !== "US").length > 1 ? "s" : ""} selected
+                  </div>
+                )}
               </div>
+
               <button
                 className="btn"
                 style={{ justifyContent: "center", ...(creating ? { opacity: 0.6, cursor: "default" } : null) }}
                 onClick={createProfile}
                 disabled={creating}
               >
-                {creating ? "Scoring your board…" : <>Create profile & re-score the board <ArrowRight size={15} /></>}
+                {creating ? "Scoring your board…" : <>Create profile & score against live data <ArrowRight size={15} /></>}
               </button>
             </div>
           </div>
