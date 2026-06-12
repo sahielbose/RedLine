@@ -26,6 +26,7 @@ import {
   type BandKey,
 } from "@/app/lib/ui";
 import { POSTAL_TO_NAME } from "@/app/lib/geo";
+import { usePrefersReducedMotion } from "@/app/lib/useReducedMotion";
 import { USMap } from "@/app/components/USMap";
 import { MapCards } from "@/app/components/MapCards";
 import { Toasts, useToasts } from "@/app/components/Toasts";
@@ -301,11 +302,12 @@ export function AppView({ data }: { data: DashboardData }) {
     return railList.length ? railList[cycleIdx % railList.length] : null;
   }, [railList, spotId, cycleIdx]);
   const cyclePaused = Boolean(spotId) || !autoCycle || railList.length < 2;
+  const prefersReduced = usePrefersReducedMotion();
   useEffect(() => {
-    if (tab !== "overview" || cyclePaused || hoverPause || reduced()) return;
+    if (tab !== "overview" || cyclePaused || hoverPause || prefersReduced) return;
     const t = setInterval(() => setCycleIdx((i) => i + 1), CYCLE_MS);
     return () => clearInterval(t);
-  }, [tab, cyclePaused, hoverPause]);
+  }, [tab, cyclePaused, hoverPause, prefersReduced]);
   /* activity feed: relevant items, newest action first (real last-action dates) */
   const activityList = useMemo(
     () =>

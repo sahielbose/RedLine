@@ -32,6 +32,7 @@ import type { BoardData, SurfacedCard } from "@/app/lib/board";
 import { DEMO_ITEMS } from "@/app/lib/demo-data";
 import { band, sevStyle } from "@/app/lib/ui";
 import { USMap } from "@/app/components/USMap";
+import { usePrefersReducedMotion } from "@/app/lib/useReducedMotion";
 
 /* ---------- copy (ours - honest, specific) ---------- */
 
@@ -320,11 +321,12 @@ function Process() {
     return () => io.disconnect();
   }, []);
 
+  const prefersReduced = usePrefersReducedMotion();
   useEffect(() => {
-    if (!inView || pinned || reduced()) return;
+    if (!inView || pinned || prefersReduced) return;
     const t = setInterval(() => setActive((a) => (a + 1) % STEPS.length), 3500);
     return () => clearInterval(t);
-  }, [inView, pinned]);
+  }, [inView, pinned, prefersReduced]);
 
   return (
     <section className="section paper" id="process" ref={secRef}>

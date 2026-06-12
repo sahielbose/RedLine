@@ -56,10 +56,11 @@ export function MapCards({
       onMouseEnter={() => onHoverChange(true)}
       onMouseLeave={() => onHoverChange(false)}
     >
+      {/* label flips with state, so no aria-pressed - a changing accessible
+          name plus a pressed state reads as contradictory to screen readers */}
       <button
         className="cycle mc-toggle"
         onClick={onTogglePause}
-        aria-pressed={!paused}
         title={paused ? "Resume auto-cycling" : "Pause auto-cycling"}
       >
         {paused ? <Play size={11} /> : <Pause size={11} />}

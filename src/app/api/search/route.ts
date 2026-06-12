@@ -6,9 +6,10 @@
  *   1. embed the natural-language query (in-process embedder)
  *   2. retrieve candidates from Postgres - HYBRID: Postgres full-text keyword
  *      rank (real text search) blended with pgvector cosine similarity
- *   3. judge each candidate with the LLM (Claude Haiku when ANTHROPIC_API_KEY is
- *      set - the cheapest model - else the deterministic heuristic judge), scoped
- *      to the active business profile so a search means "relevant to THIS business"
+ *   3. judge each candidate with the LLM (the configured Claude model when a key
+ *      is set, with an automatic per-candidate fallback to the deterministic local
+ *      engine if Claude is unavailable), scoped to the active business profile so
+ *      a search means "relevant to THIS business"
  *   4. stream each judged result as it lands, then a final summary
  *
  * No fabrication: every field returned is a column the pipeline populated from a
@@ -19,9 +20,9 @@ import type { NextRequest } from "next/server";
 import { getPool } from "@/lib/db";
 import { getEmbedder } from "@/lib/embedder";
 import { getLLM } from "@/lib/llm";
-import { AnthropicLLM } from "@/lib/adapters/anthropicLLM";
+import { resolveLLMConfig } from "@/lib/settings";
+import type { FallbackEvent } from "@/lib/adapters/fallbackLLM";
 import { judge } from "@/pipeline/judge";
-import { env } from "@/lib/env";
 import type {
   BusinessProfile,
   BusinessType,
@@ -174,8 +175,15 @@ export async function POST(req: NextRequest): Promise<Response> {
         }
 
         // 3. Judge each candidate with the LLM, scoped to the query (as the concern).
-        const useClaude = Boolean(env().ANTHROPIC_API_KEY);
-        const llm = useClaude ? new AnthropicLLM() : getLLM();
+        // getLLM() returns Claude-with-local-fallback when the provider is set to
+        // anthropic; fallback events are collected so we can tell the user if Claude
+        // was unavailable and the local engine answered instead.
+        const cfg = resolveLLMConfig();
+        const fellBack: FallbackEvent[] = [];
+        const llm = getLLM((e) => {
+          if (e.used === "fallback") fellBack.push(e);
+        });
+        const usingClaude = cfg.provider === "anthropic";
         const judgeProfile: BusinessProfile = {
           id: profile?.id ?? "search",
           org_id: profile?.org_id ?? "search",
@@ -189,7 +197,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         send({
           type: "stage",
           key: "judge",
-          label: `Judging ${rows.length} candidates with ${useClaude ? "Claude" : "the local engine"}`,
+          label: `Judging ${rows.length} candidates with ${usingClaude ? "Claude" : "the local engine"}`,
           status: "run",
         });
 
@@ -245,8 +253,15 @@ export async function POST(req: NextRequest): Promise<Response> {
           }),
         );
 
-        send({ type: "stage", key: "judge", status: "done", detail: `${relevant} relevant` });
-        send({ type: "done", count: rows.length, relevant });
+        // If Claude was asked for but unavailable, say so honestly (spec §8).
+        const fallbackHint = usingClaude && fellBack.length > 0 ? fellBack[fellBack.length - 1].hint : undefined;
+        send({
+          type: "stage",
+          key: "judge",
+          status: "done",
+          detail: fallbackHint ? `${relevant} relevant · judged locally — ${fallbackHint}` : `${relevant} relevant`,
+        });
+        send({ type: "done", count: rows.length, relevant, notice: fallbackHint ?? null });
       } catch (err) {
         send({ type: "error", message: err instanceof Error ? err.message : "Search failed" });
       } finally {

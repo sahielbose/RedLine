@@ -12,6 +12,14 @@ import type { ZodSchema } from "zod";
 
 import { env } from "@/lib/env";
 import type { LLM } from "@/lib/interfaces";
+import { classifyLLMError } from "@/lib/llmError";
+
+/** Per-instance overrides so a user-supplied (BYO) key/model can be threaded in. */
+export interface AnthropicOptions {
+  model?: string;
+  apiKey?: string;
+  maxTokens?: number;
+}
 
 /** Pull the first balanced JSON object/array out of a model response. */
 function extractJson(text: string): unknown {
@@ -48,17 +56,25 @@ function extractJson(text: string): unknown {
 export class AnthropicLLM implements LLM {
   private client: Anthropic | null = null;
   readonly model: string;
+  private readonly apiKey?: string;
+  private readonly maxTokens: number;
 
-  constructor(model?: string) {
-    this.model = model ?? env().ANTHROPIC_MODEL;
+  constructor(opts?: AnthropicOptions | string) {
+    // Back-compat: a bare string is treated as the model.
+    const o: AnthropicOptions = typeof opts === "string" ? { model: opts } : opts ?? {};
+    this.model = o.model ?? env().ANTHROPIC_MODEL;
+    this.apiKey = o.apiKey;
+    // 1024 truncated long memo JSON; 4096 covers structured briefs. Only the
+    // tokens actually generated are billed — a higher cap just prevents cutoff.
+    this.maxTokens = o.maxTokens ?? 4096;
   }
 
   private getClient(): Anthropic {
     if (this.client) return this.client;
-    const apiKey = env().ANTHROPIC_API_KEY;
+    const apiKey = this.apiKey ?? env().ANTHROPIC_API_KEY;
     if (!apiKey) {
       throw new Error(
-        "AnthropicLLM requires ANTHROPIC_API_KEY. Set it in .env, or use LLM_PROVIDER=local for the hermetic fallback.",
+        "AnthropicLLM requires an Anthropic API key. Add one in Settings, set ANTHROPIC_API_KEY in .env, or use LLM_PROVIDER=local for the hermetic fallback.",
       );
     }
     this.client = new Anthropic({ apiKey });
@@ -73,7 +89,7 @@ export class AnthropicLLM implements LLM {
     const call = async (extraUser?: string): Promise<T> => {
       const res = await client.messages.create({
         model,
-        max_tokens: 1024,
+        max_tokens: this.maxTokens,
         system,
         messages: [{ role: "user", content: extraUser ? `${a.user}\n\n${extraUser}` : a.user }],
       });
@@ -87,8 +103,11 @@ export class AnthropicLLM implements LLM {
 
     try {
       return await call();
-    } catch {
-      // One corrective retry — common with strict schemas.
+    } catch (err) {
+      // Only a malformed-output error is worth a corrective retry. A 400/credit,
+      // 401/auth, or 429/rate error will just repeat — rethrow it immediately so
+      // the caller (FallbackLLM) can switch to the local engine fast.
+      if (!classifyLLMError(err).retryable) throw err;
       return await call(
         "Your previous response did not parse as the required JSON schema. Respond again with ONLY the valid JSON object.",
       );
