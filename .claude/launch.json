@@ -4,8 +4,8 @@
     {
       "name": "redline-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "port": 3001
+      "runtimeArgs": ["run", "dev", "--", "-p", "2000"],
+      "port": 2000
     }
   ]
 }

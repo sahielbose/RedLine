@@ -14,9 +14,9 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  AlertTriangle, ArrowRight, Bookmark, BookmarkCheck, Building2, CheckCircle2,
-  ChevronDown, Circle, ClipboardCheck, Cpu, ExternalLink, Eye, Mail, MapPin,
-  Plus, Quote, Search, ShieldAlert, ShoppingBag, Sparkles, UtensilsCrossed, X,
+  AlertTriangle, ArrowRight, Bookmark, BookmarkCheck, BookOpen, Building2, CheckCircle2,
+  ChevronDown, Circle, ClipboardCheck, Clock, Cpu, ExternalLink, Eye, History, Mail, MapPin,
+  Plus, Quote, Scale, Search, ShieldAlert, ShoppingBag, Sparkles, UtensilsCrossed, X,
   type LucideIcon,
 } from "lucide-react";
 import type { BoardData, DashboardData, ProfileSummary, SurfacedCard } from "@/app/lib/board";
@@ -31,6 +31,7 @@ import { USMap } from "@/app/components/USMap";
 import { MapCards } from "@/app/components/MapCards";
 import { Toasts, useToasts } from "@/app/components/Toasts";
 import { AgentSearch } from "@/app/components/AgentSearch";
+import { SettingsPanel } from "@/app/components/SettingsPanel";
 
 /* ---------- constants ---------- */
 
@@ -51,7 +52,7 @@ const TYPE_ICON: Record<string, LucideIcon> = {
   hardware: Cpu,
 };
 
-type Tab = "overview" | "activity" | "search" | "bills" | "alerts" | "tracker";
+type Tab = "overview" | "activity" | "search" | "bills" | "alerts" | "tracker" | "settings";
 const TAB_LIST: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },
   { id: "activity", label: "Activity" },
@@ -59,6 +60,7 @@ const TAB_LIST: { id: Tab; label: string }[] = [
   { id: "bills", label: "Bills" },
   { id: "alerts", label: "Alerts" },
   { id: "tracker", label: "Tracker" },
+  { id: "settings", label: "Settings" },
 ];
 
 /** Friendly relative date for the activity stream: "Today" / "Yesterday" / "Jun 5, 2026". */
@@ -73,6 +75,16 @@ function activityDate(iso: string): string {
   if (days === 1) return "Yesterday";
   if (days > 1 && days < 7) return `${days} days ago`;
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+/** Who is moving this item — the honest "intel" line (issuing body / chamber),
+ *  derived from real fields. No vote predictions, no invented committee math. */
+function issuingBody(c: SurfacedCard): string {
+  if (c.agency) return c.agency;
+  if (c.source === "congress") return "U.S. Congress";
+  if (c.source === "openstates") return `${c.postal ? POSTAL_TO_NAME[c.postal] ?? "State" : "State"} Legislature`;
+  if (c.source === "federal_register") return "Federal agency";
+  return displaySource(c);
 }
 
 interface ProfileMarks {
@@ -656,6 +668,9 @@ export function AppView({ data }: { data: DashboardData }) {
             </main>
           )}
 
+          {/* ───── SETTINGS (bring-your-own-key) ───── */}
+          {tab === "settings" && <SettingsPanel onToast={(m) => toast(m)} />}
+
           {/* ───── BILLS ───── */}
           {tab === "bills" && (
             <main className="main" key={"bl" + activeId}>
@@ -852,6 +867,10 @@ export function AppView({ data }: { data: DashboardData }) {
                   {open.sample && <span className="chip sample">SAMPLE</span>}
                 </div>
                 <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: "-0.3px", lineHeight: 1.32 }}>{open.title}</div>
+                <div className="brief-issuer">
+                  {issuingBody(open)}
+                  {open.sponsors.length > 0 && <span> · Sponsored by {open.sponsors.join(", ")}</span>}
+                </div>
                 <div style={{ marginTop: 12 }}>
                   <span className="pill" style={sevStyle(openBand.key)}>
                     <OpenBandIcon size={14} /> {openBand.label} · {open.score}/5 for {board.label}
@@ -859,12 +878,61 @@ export function AppView({ data }: { data: DashboardData }) {
                 </div>
               </div>
               <div className="pbody">
-                <div className="memo"><h4>Why this matters to you</h4><p>{open.justification}</p></div>
-                <div className="memo"><h4>What it does</h4><p>{open.memo?.what_it_does ?? open.summary}</p></div>
-                <div className="memo"><h4>Status & next steps</h4><p>{open.memo?.status_and_next_steps ?? open.status}</p></div>
-                {(open.commentCloseDate || open.provenance || open.lastActionDate) && (
+                {/* PLAIN ENGLISH — what the rule actually requires, in reader terms */}
+                <div className="memo">
+                  <h4><BookOpen size={12} /> Plain English</h4>
+                  <p>{open.memo?.what_it_does ?? open.summary}</p>
+                </div>
+
+                {/* WHY THIS MATTERS — the per-you analysis, with the risk pill */}
+                <div className="memo">
+                  <h4>
+                    Why this matters to you
+                    <span className="risk-pill" style={sevStyle(open.score >= 3 ? openBand.key : "safe")}>
+                      <OpenBandIcon size={11} /> {openBand.label} risk
+                    </span>
+                  </h4>
+                  <p>{open.justification}</p>
+                </div>
+
+                {/* IMPACT + TIMELINE — two-up, like Fed10. Impact is a LABELED estimate
+                    or an honest "qualitative only" (never a fabricated figure, spec §15). */}
+                <div className="brief-grid">
+                  <div className="brief-stat">
+                    <span className="bs-label">Impact</span>
+                    <span className="bs-value">
+                      {open.memo?.impact_estimate ?? "Qualitative — not quantified for this item"}
+                    </span>
+                  </div>
+                  <div className="brief-stat">
+                    <span className="bs-label">Timeline</span>
+                    <span className="bs-value">
+                      {open.commentCloseDate && commentDaysLeft !== null && commentDaysLeft >= 0
+                        ? `Comment closes ${open.commentCloseDate} · ${commentDaysLeft} day${commentDaysLeft === 1 ? "" : "s"} left`
+                        : open.lastActionDate
+                          ? `Last action ${open.lastActionDate}`
+                          : STAGE_LABEL[open.stage] ?? "Monitoring"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* AFFECTED AREAS — taxonomy tags */}
+                {open.categories.length > 0 && (
                   <div className="memo">
-                    <h4>Key dates</h4>
+                    <h4>Affected areas</h4>
+                    <div className="brief-tags">
+                      {open.categories.map((c) => (
+                        <span className="chip" key={c}>{categoryLabel(c)}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="memo"><h4>Status &amp; next steps</h4><p>{open.memo?.status_and_next_steps ?? open.status}</p></div>
+
+                {(open.commentCloseDate || open.lastActionDate) && (
+                  <div className="memo">
+                    <h4><Clock size={12} /> Key dates</h4>
                     <ul className="keydates">
                       {open.commentCloseDate && (
                         <li className={commentDaysLeft !== null && commentDaysLeft >= 0 && commentDaysLeft <= 30 ? "urgent" : ""}>
@@ -879,12 +947,6 @@ export function AppView({ data }: { data: DashboardData }) {
                           </span>
                         </li>
                       )}
-                      {open.provenance && (
-                        <li>
-                          <b>Latest action</b>
-                          <span>{open.provenance}</span>
-                        </li>
-                      )}
                       {open.lastActionDate && (
                         <li>
                           <b>Last updated</b>
@@ -894,6 +956,7 @@ export function AppView({ data }: { data: DashboardData }) {
                     </ul>
                   </div>
                 )}
+
                 <div className="memo">
                   <h4>Recommended action</h4>
                   <span className="pill" style={{ marginTop: 2 }}>
@@ -909,11 +972,18 @@ export function AppView({ data }: { data: DashboardData }) {
                     </a>
                   )}
                 </div>
-                {open.memo?.impact_estimate && (
-                  <div className="memo"><h4>Estimated impact</h4><p>{open.memo.impact_estimate}</p></div>
+
+                {/* HISTORICAL PRECEDENT — sourced provenance framing, not invented */}
+                {open.provenance && (
+                  <div className="memo">
+                    <h4><History size={12} /> Historical precedent</h4>
+                    <p>{open.provenance}</p>
+                  </div>
                 )}
+
+                {/* AFFECTED SECTIONS & SOURCES — code-verified citations only */}
                 <div className="memo">
-                  <h4>Sources</h4>
+                  <h4><Scale size={12} /> Affected sections &amp; sources</h4>
                   {open.memo && open.memo.citations.length > 0 ? (
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       {open.memo.citations.map((c, i) => (

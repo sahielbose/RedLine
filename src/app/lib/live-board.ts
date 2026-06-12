@@ -115,6 +115,27 @@ function agencyOf(source: string, raw: unknown): string | null {
   return r?.agencies?.[0]?.name ?? null;
 }
 
+/** Bill sponsors (display names) from the raw payload — Congress + Open States shapes.
+ *  Factual public-record names only; empty when the source list endpoint omits them. */
+function sponsorsOf(raw: unknown): string[] {
+  const r = raw as Record<string, unknown> | null;
+  if (!r) return [];
+  if (Array.isArray(r.sponsors)) {
+    return (r.sponsors as Record<string, unknown>[])
+      .map((s) => (s.fullName as string) || [s.firstName, s.lastName].filter(Boolean).join(" "))
+      .filter((n): n is string => Boolean(n))
+      .slice(0, 3);
+  }
+  if (Array.isArray(r.sponsorships)) {
+    return (r.sponsorships as Record<string, unknown>[])
+      .filter((s) => s.classification === "primary" || !s.classification)
+      .map((s) => s.name as string)
+      .filter(Boolean)
+      .slice(0, 3);
+  }
+  return [];
+}
+
 function toIsoDate(d: Date | string | null): string {
   if (!d) return "";
   const dt = typeof d === "string" ? new Date(d) : d;
@@ -152,6 +173,7 @@ function surfacedCardFrom(r: JudgedRow): SurfacedCard {
     jurisdiction: r.jurisdiction,
     postal: jurisdictionToPostal(r.jurisdiction),
     categories: r.categories ?? [],
+    sponsors: sponsorsOf(r.raw),
     score,
     severity: severityLabel(score),
     justification: r.justification ?? "",

@@ -32,6 +32,8 @@ export interface SurfacedCard {
   jurisdiction: string;
   postal: string | null;
   categories: string[];
+  /** Bill/rule sponsors (display names), when the source provides them. Empty otherwise. */
+  sponsors: string[];
   score: number;
   severity: SeverityLabel;
   justification: string;
@@ -170,6 +172,7 @@ export async function computeBoardForProfile(profile: BoardProfile): Promise<Boa
       jurisdiction: di.jurisdiction,
       postal: jurisdictionToPostal(di.jurisdiction),
       categories: di.categories,
+      sponsors: [],
       score: s.score,
       severity: s.severity,
       justification: s.judgment.justification,
