@@ -13,7 +13,7 @@ import { NextResponse } from "next/server";
 import { buildProfile } from "@/pipeline/onboarding";
 import { getEmbedder } from "@/lib/embedder";
 import { computeBoardForProfile, profileSummaryOf, type BoardProfile } from "@/app/lib/board";
-import { computeBoardForProfileLive } from "@/app/lib/live-board";
+import { computeBoardForProfileLive, persistNewProfile } from "@/app/lib/live-board";
 import { AddBusinessSchema, formMeta, toOnboardingAnswers } from "@/app/lib/onboardingMap";
 
 export const dynamic = "force-dynamic";
@@ -43,6 +43,22 @@ export async function POST(req: Request) {
     embedder: getEmbedder(),
   });
 
+  // Persist the profile so it becomes a real, durable org_profiles row the
+  // agentic search can scope to (loadProfile(profileId)). When the DB is
+  // reachable we adopt the REAL org_profiles.id; when it is unreachable we keep
+  // the synthetic id and the hermetic in-memory behaviour (no persistence).
+  let persisted = false;
+  try {
+    const ids = await persistNewProfile(profile, form.name);
+    if (ids) {
+      profile.id = ids.profileId;
+      profile.org_id = ids.orgId;
+      persisted = true;
+    }
+  } catch (err) {
+    console.error("[profiles] persistence unavailable, using synthetic id (no DB):", err);
+  }
+
   const boardProfile: BoardProfile = {
     ...profile,
     label: form.name,
@@ -70,6 +86,7 @@ export async function POST(req: Request) {
     profile: profileSummaryOf(boardProfile),
     concernText: profile.concern_text,
     live,
+    persisted,
     board,
   });
 }

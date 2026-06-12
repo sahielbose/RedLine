@@ -11,7 +11,7 @@
  * localStorage (hydrated in an effect to avoid SSR mismatch).
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   AlertTriangle, ArrowRight, Bookmark, BookmarkCheck, Building2, CheckCircle2,
@@ -50,14 +50,29 @@ const TYPE_ICON: Record<string, LucideIcon> = {
   hardware: Cpu,
 };
 
-type Tab = "overview" | "search" | "bills" | "alerts" | "tracker";
+type Tab = "overview" | "activity" | "search" | "bills" | "alerts" | "tracker";
 const TAB_LIST: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },
+  { id: "activity", label: "Activity" },
   { id: "search", label: "Search" },
   { id: "bills", label: "Bills" },
   { id: "alerts", label: "Alerts" },
   { id: "tracker", label: "Tracker" },
 ];
+
+/** Friendly relative date for the activity stream: "Today" / "Yesterday" / "Jun 5, 2026". */
+function activityDate(iso: string): string {
+  if (!iso) return "Undated";
+  const d = new Date(iso + "T00:00:00");
+  if (Number.isNaN(d.getTime())) return iso;
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const days = Math.round((startOfToday.getTime() - new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()) / 86_400_000);
+  if (days === 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days > 1 && days < 7) return `${days} days ago`;
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
 
 interface ProfileMarks {
   tracked: string[];
@@ -193,7 +208,12 @@ export function AppView({ data }: { data: DashboardData }) {
 
   /* boards + profiles (built-in + custom) */
   const boards = useMemo(() => ({ ...data.boards, ...customBoards }), [data.boards, customBoards]);
-  const profiles = useMemo(() => [...data.profiles, ...customProfiles], [data.profiles, customProfiles]);
+  const profiles = useMemo(() => {
+    // Dedupe: a persisted profile can come back from the server board on reload
+    // AND still live in localStorage, so show it once (the server copy wins).
+    const serverIds = new Set(data.profiles.map((p) => p.id));
+    return [...data.profiles, ...customProfiles.filter((p) => !serverIds.has(p.id))];
+  }, [data.profiles, customProfiles]);
   const fallbackBoard = data.boards[data.profiles[0]?.id ?? ""];
   const board: BoardData = boards[activeId] ?? fallbackBoard;
   const profile: ProfileSummary = profiles.find((p) => p.id === activeId) ?? profiles[0];
@@ -273,6 +293,15 @@ export function AppView({ data }: { data: DashboardData }) {
   const spotItem: SurfacedCard | null = useMemo(
     () => railList.find((i) => i.id === spotId) ?? railList[0] ?? null,
     [railList, spotId],
+  );
+  /* activity feed: relevant items, newest action first (real last-action dates) */
+  const activityList = useMemo(
+    () =>
+      surfaced
+        .filter((s) => inFocus(s.postal) && s.lastActionDate)
+        .slice()
+        .sort((a, b) => (a.lastActionDate < b.lastActionDate ? 1 : a.lastActionDate > b.lastActionDate ? -1 : 0)),
+    [surfaced, inFocus],
   );
   /* reset focus + highlight when switching businesses */
   useEffect(() => {
@@ -534,6 +563,44 @@ export function AppView({ data }: { data: DashboardData }) {
                   <div className="map-help">Click any state to see what affects a business there: that state&apos;s bills plus all federal rules. Click again to clear.</div>
                   <Spotlight item={spotItem} />
                 </div>
+              </div>
+            </main>
+          )}
+
+          {/* ───── ACTIVITY (live feed) ───── */}
+          {tab === "activity" && (
+            <main className="main" key={"ac" + activeId}>
+              <div className="h-app">Recent activity</div>
+              <div className="sub-app">
+                The latest moves on bills and rules relevant to <b>{board.label}</b>, newest first
+                {selState ? ` (focused on ${stateName(selState)} + Federal)` : ""}.
+              </div>
+              <div className="feedstream">
+                {activityList.length === 0 && (
+                  <div className="empty">No dated activity for this business yet.</div>
+                )}
+                {activityList.map((it, i) => {
+                  const b = band(it.score);
+                  const showDate = i === 0 || activityList[i - 1].lastActionDate !== it.lastActionDate;
+                  return (
+                    <Fragment key={it.id}>
+                      {showDate && <div className="feed-date">{activityDate(it.lastActionDate)}</div>}
+                      <button className="event" onClick={() => setOpenId(it.id)} aria-label={`Open memo: ${it.title}`}>
+                        <span className="ev-dot" style={{ background: `var(--${b.key})` }} />
+                        <div className="ev-body">
+                          <div className="ev-top">
+                            <span className="mono ev-id">{it.identifier}</span>
+                            <span className="ev-src">{displaySource(it)}</span>
+                            {it.isNew && <span className="chip new">NEW</span>}
+                            <span className="ev-sev" style={sevStyle(it.score >= 3 ? b.key : "safe")}>{b.label} · {it.score}/5</span>
+                          </div>
+                          <div className="ev-title">{it.title}</div>
+                          <div className="ev-action">{it.provenance || it.status || STAGE_LABEL[it.stage] || "Update recorded"}</div>
+                        </div>
+                      </button>
+                    </Fragment>
+                  );
+                })}
               </div>
             </main>
           )}

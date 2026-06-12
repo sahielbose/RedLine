@@ -13,7 +13,7 @@
  */
 import { getPool } from "@/lib/db";
 import { env } from "@/lib/env";
-import { severityLabel, type MemoContent, type RecommendedAction } from "@/lib/types";
+import { severityLabel, type BusinessProfile, type MemoContent, type RecommendedAction } from "@/lib/types";
 import { jurisdictionToPostal } from "@/app/lib/geo";
 import { heuristicJudge, type JudgeableItem } from "@/pipeline/relevance";
 import type {
@@ -428,4 +428,83 @@ export async function computeBoardForProfileLive(profile: BoardProfile): Promise
     totalItems,
     mapByState,
   };
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * Persist a NEWLY added business ("Add your business" / /api/profiles).
+ *
+ * When the DB is reachable, insert a real organizations row (name = a slug of
+ * the business name) and a real org_profiles row from the BusinessProfile that
+ * buildProfile produced, mirroring the columns scoreActiveProfiles reads back
+ * (business_types, jurisdictions, attributes, subscribed_categories,
+ * concern_text, embedding, is_active). Returns the REAL org_profiles.id so the
+ * client uses it as the profile id and /api/search's loadProfile(profileId)
+ * finds the persisted profile.
+ *
+ * Returns null when the DB is unreachable (the caller then keeps the synthetic
+ * id and the hermetic in-memory behaviour). No fabrication: every column comes
+ * verbatim from the structured profile.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+/** Slug a business name for organizations.name: lowercased, hyphenated, trimmed. */
+function slugifyName(name: string): string {
+  const slug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+  return slug || "business";
+}
+
+export async function persistNewProfile(
+  profile: BusinessProfile,
+  businessName: string,
+): Promise<{ orgId: string; profileId: string } | null> {
+  const pool = getPool();
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const orgRes = await client.query<{ id: string }>(
+      `INSERT INTO organizations (name) VALUES ($1) RETURNING id`,
+      [slugifyName(businessName)],
+    );
+    const orgId = orgRes.rows[0]?.id;
+    if (!orgId) throw new Error("persistNewProfile: no organizations id returned");
+
+    // pgvector literal "[a,b,c]" or NULL when the profile has no embedding.
+    const emb =
+      profile.embedding && profile.embedding.length ? `[${profile.embedding.join(",")}]` : null;
+
+    const profRes = await client.query<{ id: string }>(
+      `INSERT INTO org_profiles
+         (org_id, business_types, jurisdictions, attributes,
+          subscribed_categories, concern_text, embedding, is_active)
+       VALUES ($1, $2, $3, $4::jsonb, $5, $6, $7::vector, true)
+       RETURNING id`,
+      [
+        orgId,
+        profile.business_types,
+        profile.jurisdictions,
+        JSON.stringify(profile.attributes ?? {}),
+        profile.subscribed_categories,
+        profile.concern_text,
+        emb,
+      ],
+    );
+    const profileId = profRes.rows[0]?.id;
+    if (!profileId) throw new Error("persistNewProfile: no org_profiles id returned");
+
+    await client.query("COMMIT");
+    return { orgId, profileId };
+  } catch (err) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      /* rollback best-effort: the connection may already be unusable */
+    }
+    throw err;
+  } finally {
+    client.release();
+  }
 }
