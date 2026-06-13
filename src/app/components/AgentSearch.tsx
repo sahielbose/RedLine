@@ -7,9 +7,11 @@
  * bills + rules (hybrid keyword + vector) -> judge each candidate with Claude.
  * Results stream in as the judge finishes each one. Nothing here is mocked.
  */
-import { useCallback, useRef, useState } from "react";
-import { ArrowRight, Check, ExternalLink, Loader2, Search, Sparkles } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ArrowRight, Bookmark, BookmarkCheck, Check, ExternalLink, Loader2, Search, Sparkles, X } from "lucide-react";
 import { band, sevStyle, displaySource } from "@/app/lib/ui";
+
+const SAVED_KEY = "redline.savedSearches";
 
 interface Stage {
   key: string;
@@ -57,7 +59,37 @@ export function AgentSearch({
   const [results, setResults] = useState<Result[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [ran, setRan] = useState(false);
+  const [saved, setSaved] = useState<string[]>([]);
   const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(SAVED_KEY);
+      if (raw) setSaved(JSON.parse(raw) as string[]);
+    } catch {
+      /* ignore corrupted storage */
+    }
+  }, []);
+
+  const persistSaved = useCallback((next: string[]) => {
+    setSaved(next);
+    try {
+      localStorage.setItem(SAVED_KEY, JSON.stringify(next));
+    } catch {
+      /* storage unavailable - non-fatal */
+    }
+  }, []);
+
+  const saveCurrent = useCallback(() => {
+    const q = query.trim();
+    if (!q || saved.includes(q)) return;
+    persistSaved([q, ...saved].slice(0, 12));
+  }, [query, saved, persistSaved]);
+
+  const removeSaved = useCallback(
+    (q: string) => persistSaved(saved.filter((s) => s !== q)),
+    [saved, persistSaved],
+  );
 
   const run = useCallback(
     async (qOverride?: string) => {
@@ -150,11 +182,31 @@ export function AgentSearch({
           }}
           aria-label="Search bills and rules"
         />
+        <button
+          className="srch-save"
+          onClick={saveCurrent}
+          disabled={!query.trim() || saved.includes(query.trim())}
+          title={saved.includes(query.trim()) ? "Already saved" : "Save this search"}
+        >
+          {saved.includes(query.trim()) ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}
+        </button>
         <button className="btn-run" onClick={() => run()} disabled={running || !query.trim()}>
           {running ? <Loader2 size={15} className="spin" /> : <Sparkles size={15} />}
           {running ? "Running" : "Run agents"}
         </button>
       </div>
+
+      {saved.length > 0 && (
+        <div className="srch-examples">
+          <span className="ex-label">Saved:</span>
+          {saved.map((s) => (
+            <span key={s} className="chip ex-chip saved-chip">
+              <button className="saved-run" onClick={() => run(s)} disabled={running} title="Re-run this search">{s}</button>
+              <button className="saved-x" onClick={() => removeSaved(s)} aria-label={`Remove saved search: ${s}`}><X size={11} /></button>
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="srch-examples">
         <span className="ex-label">Try:</span>

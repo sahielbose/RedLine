@@ -115,6 +115,20 @@ export function USMap({ map, selected = null, onSelect, onHover, home = [], acti
           aria-hidden="true"
         />
       ))}
+
+      {/* radar ping on the active (card-driven) state: an expanding ring that reads
+          as a live signal. Purely cosmetic; CSS animation is globally disabled
+          under prefers-reduced-motion, leaving a static dot. */}
+      {active &&
+        (() => {
+          const a = STATE_PATHS.find((s) => s.postal === active);
+          return a ? (
+            <g aria-hidden="true">
+              <circle className="usmap-ping" cx={a.cx} cy={a.cy} r={5} />
+              <circle className="usmap-ping-dot" cx={a.cx} cy={a.cy} r={3} />
+            </g>
+          ) : null;
+        })()}
     </svg>
   );
 }

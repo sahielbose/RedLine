@@ -55,6 +55,7 @@ interface JudgedRow {
   introduced_date: Date | null;
   categories: string[];
   full_text_url: string | null;
+  full_text: string | null;
   raw: unknown;
   first_seen_at: Date | null;
   score: number | null;
@@ -174,6 +175,7 @@ function surfacedCardFrom(r: JudgedRow): SurfacedCard {
     postal: jurisdictionToPostal(r.jurisdiction),
     categories: r.categories ?? [],
     sponsors: sponsorsOf(r.raw),
+    fullText: r.full_text,
     score,
     severity: severityLabel(score),
     justification: r.justification ?? "",
@@ -196,7 +198,7 @@ async function judgedRowsForOrg(orgId: string): Promise<JudgedRow[]> {
     `SELECT DISTINCT ON (rj.item_id)
        i.id, i.source, i.jurisdiction, i.identifier, i.title, i.summary,
        i.status, i.stage, i.last_action_date, i.last_action_text, i.comment_close_date,
-       i.introduced_date, i.categories, i.full_text_url, i.raw, i.first_seen_at,
+       i.introduced_date, i.categories, i.full_text_url, i.full_text, i.raw, i.first_seen_at,
        rj.score, rj.justification, rj.matched_concern,
        m.what_it_does, m.status_and_next_steps, m.who_is_affected, m.recommended_action,
        m.recommended_action_note, m.impact_estimate, m.citations, m.confidence,

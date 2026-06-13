@@ -34,6 +34,8 @@ export interface SurfacedCard {
   categories: string[];
   /** Bill/rule sponsors (display names), when the source provides them. Empty otherwise. */
   sponsors: string[];
+  /** Source text (full text when available, else null) for the highlighted-clause view. */
+  fullText: string | null;
   score: number;
   severity: SeverityLabel;
   justification: string;
@@ -173,6 +175,7 @@ export async function computeBoardForProfile(profile: BoardProfile): Promise<Boa
       postal: jurisdictionToPostal(di.jurisdiction),
       categories: di.categories,
       sponsors: [],
+      fullText: di.full_text ?? null,
       score: s.score,
       severity: s.severity,
       justification: s.judgment.justification,

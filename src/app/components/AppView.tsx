@@ -16,7 +16,7 @@ import Link from "next/link";
 import {
   AlertTriangle, ArrowRight, Bookmark, BookmarkCheck, BookOpen, Building2, CheckCircle2,
   ChevronDown, Circle, ClipboardCheck, Clock, Cpu, ExternalLink, Eye, History, Mail, MapPin,
-  Copy, PenLine, Plus, Quote, Scale, Search, ShieldAlert, ShoppingBag, Sparkles, ThumbsDown, ThumbsUp, UtensilsCrossed, X,
+  Copy, Download, FileText, PenLine, Plus, Quote, Scale, Search, ShieldAlert, ShoppingBag, Sparkles, ThumbsDown, ThumbsUp, UtensilsCrossed, X,
   type LucideIcon,
 } from "lucide-react";
 import type { BoardData, DashboardData, ProfileSummary, SurfacedCard } from "@/app/lib/board";
@@ -102,6 +102,38 @@ function plainEnglishSummary(c: SurfacedCard): string {
   return `${c.identifier ? c.identifier + " is a" : "A"} ${kind} ${origin}.${status} The full, authoritative text is on the official source linked below.`;
 }
 
+/** Render source text with the code-verified citation snippets highlighted in
+ *  place, so the substring-verification (rule #9) is literally visible: a mark =
+ *  a passage the code confirmed exists in the source. Only verified snippets are
+ *  highlighted; nothing the check didn't confirm is ever marked. */
+function highlightSource(text: string, snippets: string[]): React.ReactNode[] {
+  const clean = snippets.map((s) => s.trim()).filter((s) => s.length >= 8);
+  if (!clean.length) return [text];
+  const lower = text.toLowerCase();
+  const ranges: [number, number][] = [];
+  for (const s of clean) {
+    const idx = lower.indexOf(s.toLowerCase());
+    if (idx !== -1) ranges.push([idx, idx + s.length]);
+  }
+  if (!ranges.length) return [text];
+  ranges.sort((a, b) => a[0] - b[0]);
+  const merged: [number, number][] = [];
+  for (const r of ranges) {
+    const last = merged[merged.length - 1];
+    if (last && r[0] <= last[1]) last[1] = Math.max(last[1], r[1]);
+    else merged.push([r[0], r[1]]);
+  }
+  const out: React.ReactNode[] = [];
+  let pos = 0;
+  merged.forEach(([a, b], i) => {
+    if (a > pos) out.push(text.slice(pos, a));
+    out.push(<mark className="clause-hl" key={i}>{text.slice(a, b)}</mark>);
+    pos = b;
+  });
+  if (pos < text.length) out.push(text.slice(pos));
+  return out;
+}
+
 /** Who is moving this item — the honest "intel" line (issuing body / chamber),
  *  derived from real fields. No vote predictions, no invented committee math. */
 function issuingBody(c: SurfacedCard): string {
@@ -113,13 +145,22 @@ function issuingBody(c: SurfacedCard): string {
 }
 
 type FeedbackLabel = "relevant" | "not_relevant";
+type Disposition = "support" | "oppose" | "monitor";
 interface ProfileMarks {
   tracked: string[];
   approved: string[];
   feedback?: Record<string, FeedbackLabel>;
+  /** Your stance on an item (support / oppose / monitor) — a user label, not a prediction. */
+  disposition?: Record<string, Disposition>;
 }
 type Marks = Record<string, ProfileMarks>;
-const EMPTY_MARKS: ProfileMarks = { tracked: [], approved: [], feedback: {} };
+const EMPTY_MARKS: ProfileMarks = { tracked: [], approved: [], feedback: {}, disposition: {} };
+
+const DISPOSITIONS: { id: Disposition; label: string }[] = [
+  { id: "support", label: "Support" },
+  { id: "oppose", label: "Oppose" },
+  { id: "monitor", label: "Monitor" },
+];
 
 /** One row of the "filtered out" expander - engine-judged rejects, merged from
  *  sub-3 surfaced items and Stage-0/A filtered items. */
@@ -286,6 +327,7 @@ export function AppView({ data }: { data: DashboardData }) {
   const tracked = useMemo(() => new Set(profileMarks.tracked), [profileMarks]);
   const approved = useMemo(() => new Set(profileMarks.approved), [profileMarks]);
   const feedback = profileMarks.feedback ?? {};
+  const disposition = profileMarks.disposition ?? {};
 
   const toggleMark = useCallback(
     (kind: "tracked" | "approved", id: string, msg?: string) => {
@@ -327,6 +369,33 @@ export function AppView({ data }: { data: DashboardData }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ profileId: activeId, itemId: id, label, on: !isSame }),
+      }).catch(() => {});
+    },
+    [marks, activeId, toast],
+  );
+
+  /** Set your stance on an item (support/oppose/monitor). Picking a stance also
+   *  tracks the item (a stance implies a watchlist) and best-effort records the
+   *  stance as the tracked_items note server-side. A user label, never a prediction. */
+  const setDisposition = useCallback(
+    (id: string, value: Disposition) => {
+      const cur = (marks[activeId] ?? EMPTY_MARKS).disposition ?? {};
+      const isSame = cur[id] === value;
+      setMarks((prev) => {
+        const m = prev[activeId] ?? EMPTY_MARKS;
+        const d = { ...(m.disposition ?? {}) };
+        const trackedList = m.tracked ?? [];
+        if (isSame) delete d[id];
+        else d[id] = value;
+        // Selecting a stance auto-tracks; clearing it leaves tracking as-is.
+        const nextTracked = !isSame && !trackedList.includes(id) ? [...trackedList, id] : trackedList;
+        return { ...prev, [activeId]: { ...m, disposition: d, tracked: nextTracked } };
+      });
+      if (!isSame) toast(`Marked "${value}" for ${id.slice(0, 8)}`);
+      void fetch("/api/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profileId: activeId, itemId: id, on: !isSame, note: isSame ? "" : value }),
       }).catch(() => {});
     },
     [marks, activeId, toast],
@@ -518,6 +587,39 @@ export function AppView({ data }: { data: DashboardData }) {
       setSendingDigest(false);
     }
   }, [sendingDigest, board.label, approvedCards, toast]);
+
+  /** Export the current scored board to CSV for sharing with team/counsel. Carries
+   *  the same honesty as the UI: labeled impact estimate, source URL, memo status. */
+  const exportCsv = useCallback(() => {
+    const esc = (v: unknown) => {
+      const s = String(v ?? "");
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const header = [
+      "identifier", "title", "source", "jurisdiction", "categories", "score", "severity",
+      "status", "stage", "summary", "why_relevant", "impact_estimate", "comment_close", "memo_status", "source_url",
+    ];
+    const lines = [header.join(",")];
+    for (const r of feed) {
+      lines.push(
+        [
+          r.identifier, r.title, displaySource(r), displayJurisdiction(r.postal),
+          r.categories.map(categoryLabel).join("; "), r.score, r.severity, r.status,
+          STAGE_LABEL[r.stage] ?? r.stage, plainEnglishSummary(r), r.justification,
+          r.memo?.impact_estimate ?? "qualitative - not quantified",
+          r.commentCloseDate ?? "", approved.has(r.id) ? "approved" : "draft", r.actionUrl ?? "",
+        ].map(esc).join(","),
+      );
+    }
+    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `redline-${board.label.replace(/\s+/g, "-").toLowerCase()}-threats.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast(`Exported ${feed.length} item${feed.length === 1 ? "" : "s"} to CSV`);
+  }, [feed, approved, board.label, toast]);
 
   /* "Add your business" - the REAL engine re-scores the board server-side */
   const flip = (arr: string[], set: (v: string[]) => void, v: string) =>
@@ -897,7 +999,12 @@ export function AppView({ data }: { data: DashboardData }) {
                 <input placeholder="Search rules…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search rules" />
               </div>
 
-              <div className="seclabel" style={{ marginTop: 18 }}>Relevant to you<span className="ln" /></div>
+              <div className="seclabel" style={{ marginTop: 18 }}>
+                Relevant to you<span className="ln" />
+                <button className="export-btn" onClick={exportCsv} disabled={feed.length === 0} title="Download this board as CSV">
+                  <Download size={13} /> Export CSV
+                </button>
+              </div>
               <div className="feed">
                 {feed.map((r, i) => {
                   const b = band(r.score);
@@ -1044,7 +1151,10 @@ export function AppView({ data }: { data: DashboardData }) {
                       {itemsIn.map((r) => (
                         <button className="bcard" key={r.id} onClick={() => setOpenId(r.id)}>
                           <div className="bt">{r.title}</div>
-                          <div className="bm">{r.identifier}</div>
+                          <div className="bm">
+                            {r.identifier}
+                            {disposition[r.id] && <span className={"disp-badge " + disposition[r.id]} style={{ marginLeft: 7 }}>{disposition[r.id]}</span>}
+                          </div>
                         </button>
                       ))}
                       {itemsIn.length === 0 && <div className="empty" style={{ padding: "16px 4px" }}>-</div>}
@@ -1206,6 +1316,25 @@ export function AppView({ data }: { data: DashboardData }) {
                   </div>
                 )}
 
+                {/* SOURCE TEXT — the actual text with code-verified passages highlighted */}
+                {(() => {
+                  const src = (open.fullText || open.summary || "").trim();
+                  if (!src) return null;
+                  const verified = (open.memo?.citations ?? []).filter((c) => c.verified).map((c) => c.snippet);
+                  const excerpt = src.length > 2200 ? src.slice(0, 2200).trimEnd() + "…" : src;
+                  return (
+                    <div className="memo">
+                      <h4>
+                        <FileText size={12} /> Source text
+                        {verified.length > 0 && <span className="hl-note">cited passages highlighted</span>}
+                      </h4>
+                      <div className="clause-text">
+                        {verified.length > 0 ? highlightSource(excerpt, verified) : excerpt}
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* AFFECTED SECTIONS & SOURCES — code-verified citations only */}
                 <div className="memo">
                   <h4><Scale size={12} /> Affected sections &amp; sources</h4>
@@ -1229,6 +1358,24 @@ export function AppView({ data }: { data: DashboardData }) {
                       A cited memo is drafted for higher-priority items. The official source linked above has the full, authoritative text.
                     </p>
                   )}
+                </div>
+
+                {/* YOUR POSITION — support / oppose / monitor (a stance, not a prediction) */}
+                <div className="memo fb-block">
+                  <h4>Your position</h4>
+                  <div className="fb-row">
+                    {DISPOSITIONS.map((d) => (
+                      <button
+                        key={d.id}
+                        className={"disp-btn disp-" + d.id + (disposition[open.id] === d.id ? " on" : "")}
+                        onClick={() => setDisposition(open.id, d.id)}
+                        aria-pressed={disposition[open.id] === d.id}
+                      >
+                        {d.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="fb-hint">Tagging a stance tracks the item and labels it on the Tracker.</div>
                 </div>
 
                 {/* RELEVANCE FEEDBACK — 👍/👎 trains the filter (spec §8 feedback loop) */}

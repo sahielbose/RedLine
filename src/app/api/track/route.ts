@@ -17,12 +17,14 @@ const BodySchema = z.object({
   profileId: z.string().min(1),
   itemId: z.string().uuid(),
   on: z.boolean().default(true),
+  /** Optional stance (support/oppose/monitor) stored as the tracked_items note. */
+  note: z.string().max(40).optional(),
 });
 
 export async function POST(req: Request): Promise<Response> {
   const parsed = BodySchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ ok: false, error: "Invalid body" }, { status: 400 });
-  const { profileId, itemId, on } = parsed.data;
+  const { profileId, itemId, on, note } = parsed.data;
 
   try {
     const pool = getPool();
@@ -35,9 +37,9 @@ export async function POST(req: Request): Promise<Response> {
 
     if (on) {
       await pool.query(
-        `INSERT INTO tracked_items (org_id, item_id) VALUES ($1, $2)
-         ON CONFLICT (org_id, item_id) DO NOTHING`,
-        [orgId, itemId],
+        `INSERT INTO tracked_items (org_id, item_id, note) VALUES ($1, $2, $3)
+         ON CONFLICT (org_id, item_id) DO UPDATE SET note = EXCLUDED.note`,
+        [orgId, itemId, note ?? null],
       );
     } else {
       await pool.query(`DELETE FROM tracked_items WHERE org_id = $1 AND item_id = $2`, [orgId, itemId]);
