@@ -1,8 +1,8 @@
 /**
  * Hermetic schema tests (spec §6, §10, §11).
  *
- * These assert STRUCTURAL facts only — table objects, key columns, the seed
- * profiles' category math — with NO Postgres connection. Importing @db/schema
+ * These assert STRUCTURAL facts only - table objects, key columns, the seed
+ * profiles' category math - with NO Postgres connection. Importing @db/schema
  * and @db/seed must not open a socket (env() has safe defaults; seed's main()
  * only runs on direct invocation), so this stays green in CI with no DB.
  */
@@ -31,7 +31,7 @@ function colNames(table: Parameters<typeof getTableColumns>[0]): Set<string> {
   return new Set(Object.values(getTableColumns(table)).map((c) => c.name));
 }
 
-describe("schema — all §6 tables exist", () => {
+describe("schema - all §6 tables exist", () => {
   it("exports every §6 table", () => {
     expect(organizations).toBeDefined();
     expect(users).toBeDefined();
@@ -51,7 +51,7 @@ describe("schema — all §6 tables exist", () => {
   });
 });
 
-describe("schema — key columns match §6 SQL", () => {
+describe("schema - key columns match §6 SQL", () => {
   it("organizations has id, name, created_at", () => {
     const c = colNames(organizations);
     for (const col of ["id", "name", "created_at"]) expect(c.has(col)).toBe(true);
@@ -180,7 +180,7 @@ describe("schema — key columns match §6 SQL", () => {
   });
 });
 
-describe("schema — nullability / NOT NULL invariants from §6", () => {
+describe("schema - nullability / NOT NULL invariants from §6", () => {
   function col(table: Parameters<typeof getTableColumns>[0], name: string) {
     const found = Object.values(getTableColumns(table)).find((c) => c.name === name);
     expect(found, `column ${name} should exist`).toBeDefined();
@@ -207,7 +207,7 @@ describe("schema — nullability / NOT NULL invariants from §6", () => {
   });
 });
 
-describe("schema — embedding width tracks env().EMBED_DIM", () => {
+describe("schema - embedding width tracks env().EMBED_DIM", () => {
   it("items.embedding and org_profiles.embedding use the configured dimension", () => {
     const dim = env().EMBED_DIM;
     // The vector column carries its dimension in column.size / .dimensions.
@@ -225,7 +225,7 @@ describe("schema — embedding width tracks env().EMBED_DIM", () => {
   });
 });
 
-describe("seed profiles — the four §10/§11 eval profiles", () => {
+describe("seed profiles - the four §10/§11 eval profiles", () => {
   it("seeds exactly the four expected slugs", () => {
     const slugs = SEED_PROFILES.map((p) => p.slug).sort();
     expect(slugs).toEqual(["ecom-goods", "food-cpg", "hardware-maker", "saas-remote"]);
@@ -274,7 +274,7 @@ describe("seed profiles — the four §10/§11 eval profiles", () => {
 
   it("the horizontal-relevance matrix is asserted by category subscription (§11 C)", () => {
     // Import de minimis (C) is `goods`,`hardware`: ecom-goods + hardware-maker
-    // subscribe to goods; saas-remote does NOT — so Stage 0 filters it out for
+    // subscribe to goods; saas-remote does NOT - so Stage 0 filters it out for
     // SaaS. This is the headline acceptance fact, encoded at the data layer.
     const bySlug = Object.fromEntries(SEED_PROFILES.map((p) => [p.slug, p]));
     expect(bySlug["ecom-goods"].subscribedCategories).toContain("goods");

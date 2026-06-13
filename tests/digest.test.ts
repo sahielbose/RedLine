@@ -83,7 +83,7 @@ describe("buildDigestHtml (pure)", () => {
     expect(idxHigh).toBeLessThan(idxMonitor);
   });
 
-  it("shows only provided fields — omits action/comment-date when absent", () => {
+  it("shows only provided fields - omits action/comment-date when absent", () => {
     // The Monitor item has no actionUrl and no commentCloseDate; render only what
     // we were given (no placeholder, no invented value).
     expect(html).not.toContain("undefined");
@@ -121,7 +121,7 @@ describe("buildDigestHtml (pure)", () => {
     expect(evil).toContain("&lt;b&gt;tags&lt;/b&gt; &amp; ampersand.");
   });
 
-  it("contains NO bare $ dollar figure anywhere (no fabricated impact — spec §15)", () => {
+  it("contains NO bare $ dollar figure anywhere (no fabricated impact - spec §15)", () => {
     // No "$" followed by a digit, in our copy OR rendered from items.
     expect(html).not.toMatch(/\$\s*\d/);
     // And no fabricated probability/vote-count phrasing in our own copy.
@@ -161,7 +161,7 @@ describe("buildDigestHtml (pure)", () => {
 
 const RUN = Boolean(process.env.RUN_DB_TESTS);
 
-describe.skipIf(!RUN)("sendDigest — approved-only delivery (integration, RUN_DB_TESTS)", () => {
+describe.skipIf(!RUN)("sendDigest - approved-only delivery (integration, RUN_DB_TESTS)", () => {
   // Lazy imports so the hermetic suite never touches the DB layer.
   let getDb: typeof import("@/lib/db").getDb;
   let closeDb: typeof import("@/lib/db").closeDb;

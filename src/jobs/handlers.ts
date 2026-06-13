@@ -1,10 +1,10 @@
 /**
- * Job handlers — the WORK behind the pg-boss schedules (spec §3, §7, §8).
+ * Job handlers - the WORK behind the pg-boss schedules (spec §3, §7, §8).
  *
  * Each handler is a plain async function over an injected {@link HandlerDeps}
  * bag, so the orchestration is unit-testable hermetically (stub the deps) and
  * runs in production unchanged (the deps default to the real adapters, all
- * constructed lazily — importing this module opens NO DB / SMTP connection).
+ * constructed lazily - importing this module opens NO DB / SMTP connection).
  *
  * The three jobs, mapped to the architecture diagram (spec §3):
  *   - ingestSource(deps, sourceKey)  poll one SourceClient → upsert/diff/embed.
@@ -51,7 +51,7 @@ import { and, asc, eq, sql } from "drizzle-orm";
 /** What the digest job reports per org (a thin, faithful summary). */
 export interface DigestResult {
   orgId: string;
-  /** Memos delivered (already APPROVED — never drafts). */
+  /** Memos delivered (already APPROVED - never drafts). */
   sent: number;
   /** True if there was nothing approved to send (a no-op, not an error). */
   empty: boolean;
@@ -62,7 +62,7 @@ export type DigestCadence = "daily" | "weekly";
 
 /**
  * The digest function this handler delegates to (implemented in
- * `@/pipeline/digest`). It MUST be approved-only and mark-sent via review.ts —
+ * `@/pipeline/digest`). It MUST be approved-only and mark-sent via review.ts -
  * this handler never inspects memo status itself, so the trust guarantee lives
  * in exactly one place.
  */
@@ -94,11 +94,11 @@ const consoleLogger: JobLogger = {
  * Production multi-org digest adapter (the default {@link SendDigestFn}).
  *
  * Enumerates every org, picks the recipient as the org's earliest user
- * (`users.email` — the schema has no dedicated delivery-config table yet, so the
+ * (`users.email` - the schema has no dedicated delivery-config table yet, so the
  * owner address stands in), and delegates each org's APPROVED-ONLY send + the
  * markSent transition to `@/pipeline/digest`'s per-org `sendDigest`. Orgs with no
  * user are skipped (logged), never errored. Uses the configured Mailer
- * (LogMailer when no SMTP_URL). No status is read/written here — the approved-only
+ * (LogMailer when no SMTP_URL). No status is read/written here - the approved-only
  * guarantee lives entirely in `sendDigest`/`markSent` (spec §8).
  */
 const defaultSendDigest: SendDigestFn = async ({ db, cadence }) => {
@@ -147,7 +147,7 @@ export interface HandlerDeps {
   sendDigest: SendDigestFn;
   /** Memo-draft threshold (default env().MEMO_THRESHOLD). */
   memoThreshold: number;
-  /** Clock — injected for determinism in tests. */
+  /** Clock - injected for determinism in tests. */
   now: () => Date;
   logger: JobLogger;
 }
@@ -180,7 +180,7 @@ export function withDeps(overrides: Partial<HandlerDeps>): HandlerDeps {
 /**
  * Poll ONE source through the ingest loop (spec §7). Finds the live-ready
  * SourceClient by key in `deps.sourceClients`; if it is absent (no API key, or
- * the source is not implemented), this is a SKIP — logged and reported, never an
+ * the source is not implemented), this is a SKIP - logged and reported, never an
  * error, so a missing-key source doesn't fail the whole schedule.
  *
  * Returns the {@link IngestStats} on a real run, or `null` when skipped.
@@ -259,7 +259,7 @@ function rowToScorable(row: typeof itemsTable.$inferSelect): ScorableItem | null
  *     scoreBoard(profile, candidates, DrizzlePrefilter, llm,
  *                onJudgment: persist EVERY judgment → relevance_judgments)
  *     for each surfaced item with score >= MEMO_THRESHOLD:
- *       persistMemoDraft (status "draft" — the approval gate; NEVER auto-sent)
+ *       persistMemoDraft (status "draft" - the approval gate; NEVER auto-sent)
  *
  * The judgment id captured in the onJudgment hook is threaded into the memo's
  * `judgment_id` FK so a draft links back to the decision that triggered it.
@@ -322,7 +322,7 @@ export async function scoreActiveProfiles(deps: HandlerDeps): Promise<ScoreRunSu
     });
 
     // DRAFT a memo for everything the engine flagged at/above threshold. Status
-    // is hard-coded "draft" inside persistMemoDraft — the approval gate (§8).
+    // is hard-coded "draft" inside persistMemoDraft - the approval gate (§8).
     for (const scored of board.surfaced) {
       if (!scored.memo) continue;
       await persistMemoDraft(deps.db, {
@@ -349,7 +349,7 @@ export async function scoreActiveProfiles(deps: HandlerDeps): Promise<ScoreRunSu
 // ── handler: sendDigests ──────────────────────────────────────────────────────
 
 /**
- * Deliver the digest of APPROVED memos (spec §8 — NOTHING auto-sends). This
+ * Deliver the digest of APPROVED memos (spec §8 - NOTHING auto-sends). This
  * handler is a thin shell: it delegates the entire approved-only selection and
  * the markSent (approved→sent) transition to `deps.sendDigest`
  * (`@/pipeline/digest`). It never reads or mutates memo status itself, so the

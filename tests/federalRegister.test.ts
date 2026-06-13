@@ -59,7 +59,7 @@ const proposed = docs.find((d) => d.type === "Proposed Rule")!;
 const finalRule = docs.find((d) => d.type === "Rule")!;
 const notice = docs.find((d) => d.type === "Notice")!;
 
-describe("normalizeFederalRegisterDoc — field + type mapping", () => {
+describe("normalizeFederalRegisterDoc - field + type mapping", () => {
   it("maps source, ids, jurisdiction, and full_text_url from real fields", () => {
     const item = normalizeFederalRegisterDoc(proposed, NOW);
     expect(item.source).toBe("federal_register");
@@ -90,7 +90,7 @@ describe("normalizeFederalRegisterDoc — field + type mapping", () => {
   });
 });
 
-describe("normalizeFederalRegisterDoc — comment_close_date + stage", () => {
+describe("normalizeFederalRegisterDoc - comment_close_date + stage", () => {
   it("a proposed rule with a FUTURE comments_close_on → comment_open, date parsed", () => {
     const item = normalizeFederalRegisterDoc(proposed, NOW);
     expect(item.comment_close_date).toBe(proposed.comments_close_on); // 2026-08-10 (future vs NOW)
@@ -130,7 +130,7 @@ describe("normalizeFederalRegisterDoc — comment_close_date + stage", () => {
   });
 });
 
-describe("normalizeFederalRegisterDoc — agency signal + content_hash + no fabrication", () => {
+describe("normalizeFederalRegisterDoc - agency signal + content_hash + no fabrication", () => {
   it("captures the issuing agency into raw.agency and prepends it to subjects", () => {
     const item = normalizeFederalRegisterDoc(proposed, NOW);
     expect((item.raw as { agency: string | null }).agency).toBe("Federal Trade Commission");
@@ -170,7 +170,7 @@ describe("normalizeFederalRegisterDoc — agency signal + content_hash + no fabr
   });
 });
 
-describe("FederalRegisterClient.fetchSince — hermetic via injected fetchImpl", () => {
+describe("FederalRegisterClient.fetchSince - hermetic via injected fetchImpl", () => {
   it("normalizes the fixture batch and returns it with the max publication_date cursor", async () => {
     const client = new FederalRegisterClient({
       fetchImpl: fixtureFetch(loadFixture()),

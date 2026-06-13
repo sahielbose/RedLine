@@ -3,7 +3,7 @@
  *
  * A core RedLine failure mode it prevents: "a rule's comment window closes" and
  * a business never sees it coming (spec §1). This module surfaces items whose
- * public comment period closes soon — using ONLY real `comment_close_date`
+ * public comment period closes soon - using ONLY real `comment_close_date`
  * values from the source. No forecasting, no fabricated deadlines, no predicted
  * outcomes (spec §15): an item with a null/absent or already-past comment date
  * is simply not an upcoming alert.
@@ -19,7 +19,7 @@ export interface CommentDeadlineItem {
 }
 
 export interface CommentDeadlineOptions {
-  /** "Today" — injected so the window is deterministic (no hidden clock). */
+  /** "Today" - injected so the window is deterministic (no hidden clock). */
   now: Date;
   /** Alert when the window closes within this many days of `now` (default 14). */
   withinDays?: number;
@@ -64,7 +64,7 @@ function daysBetween(now: Date, closesAt: Date): number {
  * Return the items whose comment window closes within [now, now + withinDays],
  * sorted soonest-closing first, each annotated with `closesAt` + `daysLeft`.
  *
- * Inclusion rule (only REAL, upcoming dates — spec §15):
+ * Inclusion rule (only REAL, upcoming dates - spec §15):
  *   - the item has a parseable `comment_close_date`,
  *   - that date is on/after `now`'s day (past windows are excluded), AND
  *   - it is within `withinDays` whole days of `now` (default 14).

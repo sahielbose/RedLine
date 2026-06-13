@@ -1,5 +1,5 @@
 /**
- * ItemStore — the persistence boundary the ingest loop writes through (spec §6).
+ * ItemStore - the persistence boundary the ingest loop writes through (spec §6).
  *
  * Keeping ingestion behind this interface (the same philosophy as the LLM /
  * Embedder adapters) means the dedup / status-diff / cursor SEMANTICS are tested

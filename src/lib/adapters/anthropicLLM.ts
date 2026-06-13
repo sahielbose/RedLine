@@ -1,5 +1,5 @@
 /**
- * AnthropicLLM — Claude-backed `LLM` adapter (spec §4, §7).
+ * AnthropicLLM - Claude-backed `LLM` adapter (spec §4, §7).
  *
  * Requests strict JSON, parses the first JSON object from the response, and
  * validates it against the caller's Zod schema. Retries ONCE on a parse/validate
@@ -65,7 +65,7 @@ export class AnthropicLLM implements LLM {
     this.model = o.model ?? env().ANTHROPIC_MODEL;
     this.apiKey = o.apiKey;
     // 1024 truncated long memo JSON; 4096 covers structured briefs. Only the
-    // tokens actually generated are billed — a higher cap just prevents cutoff.
+    // tokens actually generated are billed - a higher cap just prevents cutoff.
     this.maxTokens = o.maxTokens ?? 4096;
   }
 
@@ -105,7 +105,7 @@ export class AnthropicLLM implements LLM {
       return await call();
     } catch (err) {
       // Only a malformed-output error is worth a corrective retry. A 400/credit,
-      // 401/auth, or 429/rate error will just repeat — rethrow it immediately so
+      // 401/auth, or 429/rate error will just repeat - rethrow it immediately so
       // the caller (FallbackLLM) can switch to the local engine fast.
       if (!classifyLLMError(err).retryable) throw err;
       return await call(

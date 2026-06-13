@@ -1,5 +1,5 @@
 /**
- * HashEmbedder tests — hermetic (no network, no keys, no native deps).
+ * HashEmbedder tests - hermetic (no network, no keys, no native deps).
  * Asserts the four properties the pipeline relies on: determinism, correct
  * dimension (env default 384), unit-norm, and that different texts differ.
  */

@@ -79,7 +79,7 @@ function activityDate(iso: string): string {
 
 /** A plain-English summary of the law for EVERY item: the model/source summary
  *  when present, otherwise an honest restatement of the item's own metadata (no
- *  fabrication — never invents what the law does). Guarantees the brief is never
+ *  fabrication - never invents what the law does). Guarantees the brief is never
  *  blank even for sources (e.g. the Congress list endpoint) that ship no summary. */
 function plainEnglishSummary(c: SurfacedCard): string {
   const fromMemo = c.memo?.what_it_does?.replace(/^per the source:\s*/i, "").trim();
@@ -134,7 +134,7 @@ function highlightSource(text: string, snippets: string[]): React.ReactNode[] {
   return out;
 }
 
-/** Who is moving this item — the honest "intel" line (issuing body / chamber),
+/** Who is moving this item - the honest "intel" line (issuing body / chamber),
  *  derived from real fields. No vote predictions, no invented committee math. */
 function issuingBody(c: SurfacedCard): string {
   if (c.agency) return c.agency;
@@ -150,7 +150,7 @@ interface ProfileMarks {
   tracked: string[];
   approved: string[];
   feedback?: Record<string, FeedbackLabel>;
-  /** Your stance on an item (support / oppose / monitor) — a user label, not a prediction. */
+  /** Your stance on an item (support / oppose / monitor) - a user label, not a prediction. */
   disposition?: Record<string, Disposition>;
 }
 type Marks = Record<string, ProfileMarks>;
@@ -364,7 +364,7 @@ export function AppView({ data }: { data: DashboardData }) {
         else fb[id] = label;
         return { ...prev, [activeId]: { ...m, feedback: fb } };
       });
-      if (!isSame) toast(label === "relevant" ? "Thanks — marked relevant" : "Thanks — marked not relevant");
+      if (!isSame) toast(label === "relevant" ? "Thanks - marked relevant" : "Thanks - marked not relevant");
       void fetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -643,7 +643,7 @@ export function AppView({ data }: { data: DashboardData }) {
     (id: string) => {
       const f = customForms[id];
       if (!f) {
-        toast("This profile predates editing — remove and re-add it to edit.");
+        toast("This profile predates editing - remove and re-add it to edit.");
         return;
       }
       setFName(f.name);
@@ -1192,13 +1192,13 @@ export function AppView({ data }: { data: DashboardData }) {
                 </div>
               </div>
               <div className="pbody">
-                {/* PLAIN ENGLISH — what the rule actually requires, in reader terms */}
+                {/* PLAIN ENGLISH - what the rule actually requires, in reader terms */}
                 <div className="memo">
                   <h4><BookOpen size={12} /> Plain English</h4>
                   <p>{plainEnglishSummary(open)}</p>
                 </div>
 
-                {/* WHY THIS MATTERS — the per-you analysis, with the risk pill */}
+                {/* WHY THIS MATTERS - the per-you analysis, with the risk pill */}
                 <div className="memo">
                   <h4>
                     Why this matters to you
@@ -1209,13 +1209,13 @@ export function AppView({ data }: { data: DashboardData }) {
                   <p>{open.justification}</p>
                 </div>
 
-                {/* IMPACT + TIMELINE — two-up, like Fed10. Impact is a LABELED estimate
+                {/* IMPACT + TIMELINE - two-up, like Fed10. Impact is a LABELED estimate
                     or an honest "qualitative only" (never a fabricated figure, spec §15). */}
                 <div className="brief-grid">
                   <div className="brief-stat">
                     <span className="bs-label">Impact</span>
                     <span className="bs-value">
-                      {open.memo?.impact_estimate ?? "Qualitative — not quantified for this item"}
+                      {open.memo?.impact_estimate ?? "Qualitative - not quantified for this item"}
                     </span>
                   </div>
                   <div className="brief-stat">
@@ -1230,7 +1230,7 @@ export function AppView({ data }: { data: DashboardData }) {
                   </div>
                 </div>
 
-                {/* AFFECTED AREAS — taxonomy tags */}
+                {/* AFFECTED AREAS - taxonomy tags */}
                 {open.categories.length > 0 && (
                   <div className="memo">
                     <h4>Affected areas</h4>
@@ -1303,12 +1303,12 @@ export function AppView({ data }: { data: DashboardData }) {
                       </div>
                       {draft.notice && <div className="draft-notice">{draft.notice}</div>}
                       <textarea className="draft-text" value={draft.text} onChange={(e) => setDraft({ ...draft, text: e.target.value })} rows={12} />
-                      <div className="fb-hint">Review, edit, and submit it yourself on the official portal — RedLine never sends anything for you.</div>
+                      <div className="fb-hint">Review, edit, and submit it yourself on the official portal - RedLine never sends anything for you.</div>
                     </div>
                   )}
                 </div>
 
-                {/* HISTORICAL PRECEDENT — sourced provenance framing, not invented */}
+                {/* HISTORICAL PRECEDENT - sourced provenance framing, not invented */}
                 {open.provenance && (
                   <div className="memo">
                     <h4><History size={12} /> Historical precedent</h4>
@@ -1316,7 +1316,7 @@ export function AppView({ data }: { data: DashboardData }) {
                   </div>
                 )}
 
-                {/* SOURCE TEXT — the actual text with code-verified passages highlighted */}
+                {/* SOURCE TEXT - the actual text with code-verified passages highlighted */}
                 {(() => {
                   const src = (open.fullText || open.summary || "").trim();
                   if (!src) return null;
@@ -1335,7 +1335,7 @@ export function AppView({ data }: { data: DashboardData }) {
                   );
                 })()}
 
-                {/* AFFECTED SECTIONS & SOURCES — code-verified citations only */}
+                {/* AFFECTED SECTIONS & SOURCES - code-verified citations only */}
                 <div className="memo">
                   <h4><Scale size={12} /> Affected sections &amp; sources</h4>
                   {open.memo && open.memo.citations.length > 0 ? (
@@ -1360,7 +1360,7 @@ export function AppView({ data }: { data: DashboardData }) {
                   )}
                 </div>
 
-                {/* YOUR POSITION — support / oppose / monitor (a stance, not a prediction) */}
+                {/* YOUR POSITION - support / oppose / monitor (a stance, not a prediction) */}
                 <div className="memo fb-block">
                   <h4>Your position</h4>
                   <div className="fb-row">
@@ -1378,7 +1378,7 @@ export function AppView({ data }: { data: DashboardData }) {
                   <div className="fb-hint">Tagging a stance tracks the item and labels it on the Tracker.</div>
                 </div>
 
-                {/* RELEVANCE FEEDBACK — 👍/👎 trains the filter (spec §8 feedback loop) */}
+                {/* RELEVANCE FEEDBACK - 👍/👎 trains the filter (spec §8 feedback loop) */}
                 <div className="memo fb-block">
                   <h4>Was this relevant to {board.label}?</h4>
                   <div className="fb-row">
@@ -1432,7 +1432,7 @@ export function AppView({ data }: { data: DashboardData }) {
               </div>
               <p style={{ fontSize: 13, color: "var(--muted)", margin: "8px 0 0", lineHeight: 1.55 }}>
                 {editingId
-                  ? "Update what you do and where — the engine re-scores the board against live bills and rules the moment you save."
+                  ? "Update what you do and where - the engine re-scores the board against live bills and rules the moment you save."
                   : "Tell us what you do and where. Every answer becomes a real scoring input - the engine re-scores the board against live bills and rules the moment you save. Only the name and one business type are required; the rest sharpens what surfaces."}
               </p>
             </div>
@@ -1542,7 +1542,7 @@ export function AppView({ data }: { data: DashboardData }) {
 
               <div className="field">
                 <label htmlFor="bizctx">
-                  In your own words — what helps, hurts, or blindsides you? <span className="opt-hint">optional, but this is the secret sauce</span>
+                  In your own words - what helps, hurts, or blindsides you? <span className="opt-hint">optional, but this is the secret sauce</span>
                 </label>
                 <textarea
                   id="bizctx"
@@ -1554,7 +1554,7 @@ export function AppView({ data }: { data: DashboardData }) {
                   onChange={(e) => setFContext(e.target.value)}
                 />
                 <div className="set-hint">
-                  Your words feed the scoring directly — RedLine weighs every bill against this, so the board is built around <b>you</b>.
+                  Your words feed the scoring directly - RedLine weighs every bill against this, so the board is built around <b>you</b>.
                   <span style={{ marginLeft: "auto" }}>{fContext.length}/600</span>
                 </div>
               </div>

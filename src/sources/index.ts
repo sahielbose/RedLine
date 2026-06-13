@@ -1,7 +1,7 @@
 /**
  * SourceClient registry (spec §5, §7). One place the ingest scheduler (Phase 4)
  * and any CLI gets the configured clients from. Keys come from env; clients are
- * cheap to construct without keys — only LIVE `fetchSince` needs them, so
+ * cheap to construct without keys - only LIVE `fetchSince` needs them, so
  * `enabledSourceClients()` filters to the ones that can actually poll.
  */
 import type { SourceClient } from "@/lib/interfaces";

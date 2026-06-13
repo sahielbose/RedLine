@@ -1,6 +1,6 @@
 {
   "item": "G-dol-independent-contractor",
-  "note": "Expansion (BASE category): DOL independent-contractor rule flags for any profile with 1099 contractors — here, the SaaS company.",
+  "note": "Expansion (BASE category): DOL independent-contractor rule flags for any profile with 1099 contractors - here, the SaaS company.",
   "expectations": {
     "saas-remote": { "min": 4, "max": 4, "band": "High", "flag": true },
     "ecom-goods": { "min": 0, "max": 2, "band": "Low", "flag": false },

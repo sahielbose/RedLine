@@ -2,12 +2,12 @@
  * Embedder adapters (spec §4, §7).
  *
  * One `Embedder` interface, four providers selected by env().EMBEDDER:
- *   - 'hash'   HashEmbedder   — deterministic, dependency-free; the hermetic
+ *   - 'hash'   HashEmbedder   - deterministic, dependency-free; the hermetic
  *                               default used by tests/CI (no network, no keys).
- *   - 'local'  LocalEmbedder  — bge-small-en via transformers.js (guarded
+ *   - 'local'  LocalEmbedder  - bge-small-en via transformers.js (guarded
  *                               dynamic import; dep not installed by default).
- *   - 'ollama' OllamaEmbedder — POST to a local Ollama server (nomic-embed-text).
- *   - 'api'    ApiEmbedder    — OpenAI-compatible embeddings HTTP endpoint.
+ *   - 'ollama' OllamaEmbedder - POST to a local Ollama server (nomic-embed-text).
+ *   - 'api'    ApiEmbedder    - OpenAI-compatible embeddings HTTP endpoint.
  *
  * Every provider exposes `dim = env().EMBED_DIM` and returns row-per-input
  * vectors of exactly that length. The factory `getEmbedder()` reads env once.
@@ -30,7 +30,7 @@ function tokenize(text: string): string[] {
 }
 
 /**
- * FNV-1a 32-bit hash of a string — fast, deterministic, dependency-free.
+ * FNV-1a 32-bit hash of a string - fast, deterministic, dependency-free.
  * (We only need a stable spread of tokens into buckets, not crypto strength.)
  */
 function fnv1a(token: string): number {
@@ -73,7 +73,7 @@ function assertDim(vec: number[], dim: number, provider: string): number[] {
  *  - same input  → byte-identical output
  *  - different inputs → (almost surely) different vectors
  *  - every non-empty output is unit-norm (~1.0)
- *  - no network, no keys, no native deps — safe for CI.
+ *  - no network, no keys, no native deps - safe for CI.
  */
 export class HashEmbedder implements Embedder {
   readonly dim: number;
@@ -104,7 +104,7 @@ export class HashEmbedder implements Embedder {
 /**
  * bge-small-en (384-d) via @xenova/transformers. The dep is NOT installed by
  * default (keeps the hermetic path dependency-free), so the import is a GUARDED
- * dynamic import — this file still typechecks and the hash path still runs even
+ * dynamic import - this file still typechecks and the hash path still runs even
  * when the package is absent. The pipeline lazily creates the extractor once.
  */
 export class LocalEmbedder implements Embedder {

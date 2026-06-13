@@ -7,7 +7,7 @@
  * DECLARATIVE source of truth for those cron jobs and the function that wires
  * them into a running pg-boss instance.
  *
- * IMPORTANT — no side effects at import:
+ * IMPORTANT - no side effects at import:
  *   Importing this module must NOT connect to Postgres or start a worker. It only
  *   declares data ({@link SCHEDULES}) and a function ({@link registerJobs}). The
  *   actual `new PgBoss(...)` + `boss.start()` lives in a runner the human invokes
@@ -15,7 +15,7 @@
  *
  * TRUST (spec §8): the digest job runs `sendDigests`, which delegates to
  * `@/pipeline/digest` (APPROVED-only delivery, markSent = approved→sent only).
- * Scheduling cannot bypass the approval gate — it only triggers the same
+ * Scheduling cannot bypass the approval gate - it only triggers the same
  * approved-only path on a clock.
  */
 import type { Source } from "@/lib/types";
@@ -142,7 +142,7 @@ export interface RegisterJobsOptions {
  * Register every {@link SCHEDULES} entry on a running pg-boss instance:
  * ensure its queue exists, schedule its cron, and attach its worker.
  *
- * Does NOT construct or start pg-boss (no connection here) — the caller passes
+ * Does NOT construct or start pg-boss (no connection here) - the caller passes
  * an already-started boss. The worker builds a FRESH deps bag per run via
  * `makeDeps()` so each invocation gets a current clock and clean adapters.
  *

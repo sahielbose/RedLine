@@ -1,7 +1,7 @@
 # Trust layer & guardrails
 
 > Expands [`REDLINE_MASTER_SPEC.md` §8](./REDLINE_MASTER_SPEC.md#8-trust-layer) (trust layer) and [§15](./REDLINE_MASTER_SPEC.md#15-guardrails--non-negotiables) (non-negotiables). Mirrors `CLAUDE.md`'s golden rules.
-> Enforced in `src/lib/types.ts` shapes (`Citation.verified`, `MemoContent.impact_estimate`, `MemoStatus`) and in code — **not just in prompts**.
+> Enforced in `src/lib/types.ts` shapes (`Citation.verified`, `MemoContent.impact_estimate`, `MemoStatus`) and in code - **not just in prompts**.
 > Siblings: [PIPELINE](./PIPELINE.md) · [DATA_MODEL](./DATA_MODEL.md) · [EVALS](./EVALS.md) · [PROMPTS](./PROMPTS.md).
 
 **The trust layer is ~95% of the product. Build it from commit #1.** The model is ~5%; coverage, precision, citations, and audit are what a small business is actually buying. Each guardrail below is enforced in **code**, with the prompt as a second line of defence.
@@ -23,10 +23,10 @@ Every state change → one `audit_log` row with `before`/`after` JSON, `actor` (
 
 ## No fabrication
 
-Never emit an invented **dollar impact**, **probability**, or **vote prediction** — in prompts *and* enforced in code.
+Never emit an invented **dollar impact**, **probability**, or **vote prediction** - in prompts *and* enforced in code.
 
-- `MemoContent.impact_estimate` is a **labeled estimate with stated assumptions, or empty (`null`)** — never a hero number presented as calculated. Code rejects an unlabeled numeric impact claim before save.
-- **No outcome / whip-count predictions** ("likely yes 5, swing 3…"). The STATUS surface shows *factual* upcoming events only — hearing dates, `comment_close_date`, status changes — never invented vote forecasts about named people.
+- `MemoContent.impact_estimate` is a **labeled estimate with stated assumptions, or empty (`null`)** - never a hero number presented as calculated. Code rejects an unlabeled numeric impact claim before save.
+- **No outcome / whip-count predictions** ("likely yes 5, swing 3…"). The STATUS surface shows *factual* upcoming events only - hearing dates, `comment_close_date`, status changes - never invented vote forecasts about named people.
 - The Stage B judge and memo prompts both forbid invented section numbers and unsupported claims; the eval harness catches drift.
 
 ## No PII directories
@@ -34,7 +34,7 @@ Never emit an invented **dollar impact**, **probability**, or **vote prediction*
 Never build or seed a directory of named individuals' personal contact info. The lobbyist-relationship layer is a forward-deployed-services moat, not a vibe-codeable feature.
 
 - `recommended_action` ∈ `comment | monitor | call_counsel | no_action`; any link points to an **official public portal** (e.g. the Regulations.gov comment page), **never a person's phone/email**.
-- `items.sponsors` is source-native metadata for display/provenance — it is **not** turned into a contact directory.
+- `items.sponsors` is source-native metadata for display/provenance - it is **not** turned into a contact directory.
 
 ## Citation verification (by code, not the model)
 
@@ -53,12 +53,12 @@ The substring check decides `verified`, not the LLM's self-report. Memo claims l
 You **cannot** prove "no missed bills." The **eval set is the evidence**, and only for the categories/states you have labeled. So:
 
 - Label immature modules/states **beta** in the UI ([DESIGN](./DESIGN.md)).
-- **Document the state-regulatory-register gap** — Open States is bills-only and the Federal Register is federal-only, so state agency rulemakings can be silently missed until the per-state register scraper ships ([DATA_SOURCES](./DATA_SOURCES.md#the-state-regulatory-register-gap-document-do-not-hide), [ROADMAP](./ROADMAP.md)).
+- **Document the state-regulatory-register gap** - Open States is bills-only and the Federal Register is federal-only, so state agency rulemakings can be silently missed until the per-state register scraper ships ([DATA_SOURCES](./DATA_SOURCES.md#the-state-regulatory-register-gap-document-do-not-hide), [ROADMAP](./ROADMAP.md)).
 - **Never imply coverage you haven't measured.**
 
 ## Eval-gated changes
 
-Every prompt / rubric / classifier change re-runs `npm run eval`. A **recall regression fails CI and is not merged** — recall is sacred ([EVALS](./EVALS.md)). Version constants (`RUBRIC_VERSION`, `PROMPT_VERSION` in `src/lib/types.ts`) are bumped on each change so judgments stay attributable.
+Every prompt / rubric / classifier change re-runs `npm run eval`. A **recall regression fails CI and is not merged** - recall is sacred ([EVALS](./EVALS.md)). Version constants (`RUBRIC_VERSION`, `PROMPT_VERSION` in `src/lib/types.ts`) are bumped on each change so judgments stay attributable.
 
 ---
 

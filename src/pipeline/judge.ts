@@ -1,5 +1,5 @@
 /**
- * Stage B — LLM rubric judge orchestrator (spec §7).
+ * Stage B - LLM rubric judge orchestrator (spec §7).
  *
  * Builds the SYSTEM + USER rubric prompt, embeds the profile + item as a
  * <DATA>…</DATA> JSON block (so the hermetic HeuristicLLM can recover them and
@@ -24,11 +24,11 @@ import type { JudgeableItem } from "@/pipeline/relevance";
 /** The Stage-B system prompt (spec §7; mirror of docs/PROMPTS.md, versioned). */
 export const JUDGE_SYSTEM = `You score how much one legislative/regulatory item threatens or affects ONE business. Judge ONLY on what the item says. Don't assume provisions not present. If too vague to assess, score low and say so. Never invent section numbers. Output ONLY JSON.
 Rubric 0-5:
- 5 Direct material impact — new obligations/costs/restrictions on this org's core ops, action now.
- 4 Clearly relevant — regulates this org's activities; would likely require a change or position.
- 3 Sector-adjacent — touches the broader sector; monitor.
- 2 Weak/indirect — affects industry only via suppliers/customers, not the org.
- 1 Background noise — shares keywords, different context.
+ 5 Direct material impact - new obligations/costs/restrictions on this org's core ops, action now.
+ 4 Clearly relevant - regulates this org's activities; would likely require a change or position.
+ 3 Sector-adjacent - touches the broader sector; monitor.
+ 2 Weak/indirect - affects industry only via suppliers/customers, not the org.
+ 1 Background noise - shares keywords, different context.
  0 Irrelevant.
 Return JSON: {"score":int,"justification":"one concrete sentence naming the provision/reason","matched_concern":"which profile element, or null"}`;
 

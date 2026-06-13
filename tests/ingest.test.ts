@@ -2,7 +2,7 @@
  * Hermetic proof of the Phase-1 ingest checkpoint (spec §14): re-running over
  * unchanged source data produces NO duplicate rows and NO spurious status
  * history, the cursor advances, and a real status change appends exactly one
- * history row. Runs against MemoryItemStore + the deterministic hash embedder —
+ * history row. Runs against MemoryItemStore + the deterministic hash embedder -
  * no DB, no network, no keys. The production DrizzleItemStore shares this loop.
  */
 import { describe, it, expect } from "vitest";

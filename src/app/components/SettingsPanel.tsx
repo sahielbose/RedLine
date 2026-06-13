@@ -1,14 +1,14 @@
 "use client";
 
 /**
- * Settings tab — bring-your-own-key control center (spec §4, §15).
+ * Settings tab - bring-your-own-key control center (spec §4, §15).
  *
  * Lets the operator paste an Anthropic API key, choose a model, and flip the
- * engine between the local (free, hermetic) judge and Claude — all taking effect
+ * engine between the local (free, hermetic) judge and Claude - all taking effect
  * immediately, with no .env edit or restart. A "Test connection" button does a
  * live one-token probe and reports precisely ("out of credits", "key rejected",
  * etc.). The key is sent once to the server, stored there (mode 0600), and never
- * returned — the UI only ever sees a masked tail.
+ * returned - the UI only ever sees a masked tail.
  */
 import { useCallback, useEffect, useState } from "react";
 import { KeyRound, Check, X, Loader2, Cpu, Sparkles, Database, Mail, Landmark, Building2 } from "lucide-react";
@@ -107,7 +107,7 @@ export function SettingsPanel({ onToast }: { onToast?: (msg: string) => void }) 
       setProvider(s.provider);
       setModel(s.model);
       setKeyInput("");
-      onToast?.(provider === "anthropic" ? "Saved — agents now run on Claude" : "Settings saved");
+      onToast?.(provider === "anthropic" ? "Saved - agents now run on Claude" : "Settings saved");
     } catch {
       onToast?.("Could not save settings");
     } finally {
@@ -128,7 +128,7 @@ export function SettingsPanel({ onToast }: { onToast?: (msg: string) => void }) 
       setProvider(s.provider);
       setKeyInput("");
       setTest(null);
-      onToast?.("Key removed — using the local engine");
+      onToast?.("Key removed - using the local engine");
     } finally {
       setSaving(false);
     }
@@ -159,7 +159,7 @@ export function SettingsPanel({ onToast }: { onToast?: (msg: string) => void }) 
     <main className="main" key="settings">
       <div className="h-app">Settings</div>
       <div className="sub-app">
-        Bring your own Anthropic key and choose the engine. Everything is personalized to <b>your business</b> either way —
+        Bring your own Anthropic key and choose the engine. Everything is personalized to <b>your business</b> either way -
         the key just upgrades the analysis from the local engine to Claude.
       </div>
 
@@ -180,7 +180,7 @@ export function SettingsPanel({ onToast }: { onToast?: (msg: string) => void }) 
           <div className="set-hint">
             {provider === "local"
               ? "Free, instant, runs with zero keys. Great for trying the product."
-              : "Claude reads bill text and writes the briefs. Needs a funded Anthropic key — falls back to the local engine automatically if Claude is unavailable."}
+              : "Claude reads bill text and writes the briefs. Needs a funded Anthropic key - falls back to the local engine automatically if Claude is unavailable."}
           </div>
         </div>
 
@@ -249,7 +249,7 @@ export function SettingsPanel({ onToast }: { onToast?: (msg: string) => void }) 
             <button className={cadence === "daily" ? "on" : ""} onClick={() => setCadence("daily")}>Daily</button>
             <button className={cadence === "weekly" ? "on" : ""} onClick={() => setCadence("weekly")}>Weekly</button>
           </div>
-          <div className="set-hint">How often the digest goes out. It sends only memos you approved in the Alerts tab (the approval gate) — never auto-sends.</div>
+          <div className="set-hint">How often the digest goes out. It sends only memos you approved in the Alerts tab (the approval gate) - never auto-sends.</div>
         </div>
         <div className="field">
           <label>Comment-deadline alerts</label>

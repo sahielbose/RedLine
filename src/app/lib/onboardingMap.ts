@@ -19,7 +19,7 @@ export const AddBusinessSchema = z.object({
   employees: z.coerce.number().int().min(0).max(2_000_000).optional(),
   /** FSMA precision lever (spec §11 D): only set when the business handles food. */
   foodRole: z.enum(["make_pack_hold", "distribute", "serve_only"]).nullable().default(null),
-  /** Free-text "what's proprietary about us" — steers scoring (spec §10, Fed10
+  /** Free-text "what's proprietary about us" - steers scoring (spec §10, Fed10
    *  "upload what's proprietary"). Folded into concern_text. */
   context: z.string().trim().max(600).optional(),
   attrs: z

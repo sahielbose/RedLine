@@ -1,5 +1,5 @@
 /**
- * Stage A — pgvector prefilter (spec §7). Cheap embedding shortlist before the
+ * Stage A - pgvector prefilter (spec §7). Cheap embedding shortlist before the
  * (cost-bearing) Stage B judge. Behind a `Prefilter` interface so the ranking is
  * testable hermetically (MemoryPrefilter, cosine in JS); the production
  * DrizzlePrefilter runs the equivalent SQL:

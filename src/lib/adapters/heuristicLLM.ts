@@ -1,17 +1,17 @@
 /**
- * HeuristicLLM — the documented hermetic local fallback (spec §4, §15).
+ * HeuristicLLM - the documented hermetic local fallback (spec §4, §15).
  *
  * Implements the `LLM` interface with ZERO external calls so the pipeline + eval
  * harness run green with no secrets and no model server. It is deterministic:
  *
  *   • For a JudgeResult-shaped schema, it recovers {profile,item} from a
  *     <DATA>…</DATA> JSON block embedded in the user message and returns
- *     `heuristicJudge(profile,item)` — the same general rubric scorer the real
+ *     `heuristicJudge(profile,item)` - the same general rubric scorer the real
  *     models are asked to emulate.
  *
  *   • For a memo-shaped schema, it builds a GROUNDED template memo from the
  *     <DATA> (no fabricated numbers; impact_estimate=null; citations built only
- *     from verbatim substrings of the provided text — CODE-verifiable later).
+ *     from verbatim substrings of the provided text - CODE-verifiable later).
  *
  *   • Otherwise it best-effort produces a schema-valid object so callers never
  *     crash in the hermetic path.

@@ -1,5 +1,5 @@
 /**
- * Per-business scoring orchestrator (spec §7) — ties the three stages together:
+ * Per-business scoring orchestrator (spec §7) - ties the three stages together:
  *   Stage 0  category intersection (inside the prefilter's WHERE)
  *   Stage A  pgvector/cosine prefilter → top-K candidates
  *   Stage B  LLM rubric judge → score 0–5 (+ logged judgment)
@@ -58,7 +58,7 @@ export interface ScoreBoardArgs {
 export interface ScoreBoard {
   profileId: string;
   surfaced: ScoredItem[];
-  /** Items dropped by Stage 0/A (category/jurisdiction) — never reached the judge. */
+  /** Items dropped by Stage 0/A (category/jurisdiction) - never reached the judge. */
   filteredOut: number;
 }
 
@@ -75,7 +75,7 @@ export async function scoreBoard(args: ScoreBoardArgs): Promise<ScoreBoard> {
   const byId = new Map(items.map((i) => [i.id, i]));
 
   // True Stage-0 reject count (category/jurisdiction), independent of the
-  // prefilter top-K cap — so a board with >LIMIT matches doesn't mislabel
+  // prefilter top-K cap - so a board with >LIMIT matches doesn't mislabel
   // capped-but-relevant items as "filtered out".
   const jur = new Set<string>(profile.jurisdictions);
   const subs = new Set<string>(profile.subscribed_categories);

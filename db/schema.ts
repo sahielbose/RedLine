@@ -1,9 +1,9 @@
 /**
- * RedLine database schema — Drizzle (spec §6).
+ * RedLine database schema - Drizzle (spec §6).
  *
  * This file mirrors the §6 SQL EXACTLY: same table/column names, types,
  * defaults, nullability, UNIQUE constraints and indexes. Every module codes
- * against the row types inferred here — it is the integration contract, so do
+ * against the row types inferred here - it is the integration contract, so do
  * NOT drift from §6.
  *
  * pgvector: `CREATE EXTENSION IF NOT EXISTS vector` is run by db/migrate.ts
@@ -54,7 +54,7 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-// ── org_profiles — the business profile, built from onboarding (§6, §10) ─────
+// ── org_profiles - the business profile, built from onboarding (§6, §10) ─────
 export const orgProfiles = pgTable("org_profiles", {
   id: uuid("id").primaryKey().defaultRandom(),
   orgId: uuid("org_id")
@@ -83,7 +83,7 @@ export const orgProfiles = pgTable("org_profiles", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-// ── items — unified legislative/regulatory item (bills AND rules) (§6) ───────
+// ── items - unified legislative/regulatory item (bills AND rules) (§6) ───────
 export const items = pgTable(
   "items",
   {
@@ -136,7 +136,7 @@ export const items = pgTable(
   ],
 );
 
-// ── item_status_history — append-only "no missed amendment" backbone (§6) ────
+// ── item_status_history - append-only "no missed amendment" backbone (§6) ────
 export const itemStatusHistory = pgTable("item_status_history", {
   id: uuid("id").primaryKey().defaultRandom(),
   itemId: uuid("item_id")
@@ -149,7 +149,7 @@ export const itemStatusHistory = pgTable("item_status_history", {
   recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-// ── relevance_judgments — THE trust-tuning log: every decision, forever (§6) ─
+// ── relevance_judgments - THE trust-tuning log: every decision, forever (§6) ─
 export const relevanceJudgments = pgTable(
   "relevance_judgments",
   {
@@ -177,7 +177,7 @@ export const relevanceJudgments = pgTable(
   ],
 );
 
-// ── memos — cited memo; DRAFT until a human approves (approval gate) (§6, §8) ─
+// ── memos - cited memo; DRAFT until a human approves (approval gate) (§6, §8) ─
 export const memos = pgTable("memos", {
   id: uuid("id").primaryKey().defaultRandom(),
   itemId: uuid("item_id")
@@ -207,7 +207,7 @@ export const memos = pgTable("memos", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-// ── tracked_items — followed items for the Tracker kanban (§6, §2) ───────────
+// ── tracked_items - followed items for the Tracker kanban (§6, §2) ───────────
 export const trackedItems = pgTable(
   "tracked_items",
   {
@@ -227,7 +227,7 @@ export const trackedItems = pgTable(
   ],
 );
 
-// ── relevance_feedback — 👍/👎 on flagged items → eval labels (§6, §8) ───────
+// ── relevance_feedback - 👍/👎 on flagged items → eval labels (§6, §8) ───────
 export const relevanceFeedback = pgTable("relevance_feedback", {
   id: uuid("id").primaryKey().defaultRandom(),
   orgId: uuid("org_id")
@@ -243,7 +243,7 @@ export const relevanceFeedback = pgTable("relevance_feedback", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-// ── audit_log — every state change, before/after (§6, §8 trust layer) ────────
+// ── audit_log - every state change, before/after (§6, §8 trust layer) ────────
 export const auditLog = pgTable("audit_log", {
   id: uuid("id").primaryKey().defaultRandom(),
   orgId: uuid("org_id").references(() => organizations.id),
@@ -257,7 +257,7 @@ export const auditLog = pgTable("audit_log", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-// ── sync_state — per-source incremental cursor (§6, §7) ──────────────────────
+// ── sync_state - per-source incremental cursor (§6, §7) ──────────────────────
 export const syncState = pgTable("sync_state", {
   // PRIMARY KEY (source)
   source: text("source").primaryKey(),

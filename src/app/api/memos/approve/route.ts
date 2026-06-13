@@ -1,11 +1,11 @@
 /**
- * POST /api/memos/approve — move a drafted memo through the approval gate (spec §8).
+ * POST /api/memos/approve - move a drafted memo through the approval gate (spec §8).
  *
  * Body: { profileId, itemId, on }. Best-effort durable sync for the dashboard's
  * "Approve memo" toggle: on=true promotes the org's draft memo for that item to
  * 'approved' (so the scheduled digest, which sends APPROVED only, will include
  * it); on=false returns it to 'draft'. Every transition writes an audit_log row.
- * A no-op when the profile/memo isn't in Postgres (demo/custom) — the optimistic
+ * A no-op when the profile/memo isn't in Postgres (demo/custom) - the optimistic
  * UI stays the source of truth for the view. Nothing is ever auto-sent.
  */
 import { NextResponse } from "next/server";

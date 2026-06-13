@@ -1,12 +1,12 @@
 /**
- * Audit log — the trust layer's tamper-evident change record (spec §6, §8).
+ * Audit log - the trust layer's tamper-evident change record (spec §6, §8).
  *
  * Every state change in RedLine writes an `audit_log` row capturing BOTH the
  * before-image and the after-image of the affected entity. That is the trust
  * feature (you can reconstruct who changed what, when) and the debugger.
  *
  * Two pieces, deliberately split so the shape is hermetically testable:
- *   - `buildAuditEntry(...)` is PURE — it maps its arguments to a plain object
+ *   - `buildAuditEntry(...)` is PURE - it maps its arguments to a plain object
  *     matching the §6 `audit_log` columns (camelCase, Drizzle-insert shape). No
  *     I/O, no clock, no DB. Tests assert the shape with zero infrastructure.
  *   - `recordAudit(db, entry)` is a thin insert that persists one row, letting
@@ -24,7 +24,7 @@ export const SYSTEM_ACTOR = "system" as const;
 
 /** Inputs to {@link buildAuditEntry}. `actor` is a user uuid or `"system"`. */
 export interface AuditEntryInput {
-  /** Owning org (nullable in §6 — system-wide events may have no org). */
+  /** Owning org (nullable in §6 - system-wide events may have no org). */
   orgId: string | null;
   /** User uuid that performed the action, or `"system"`. */
   actor: string;
@@ -43,7 +43,7 @@ export interface AuditEntryInput {
 /**
  * Build a plain object matching the `audit_log` insert columns (spec §6).
  *
- * PURE: no DB, no clock — `created_at` is intentionally omitted so the column
+ * PURE: no DB, no clock - `created_at` is intentionally omitted so the column
  * default (`now()`) supplies an authoritative server timestamp on insert (we
  * never fabricate time, per the no-fabrication guardrail). `before`/`after`
  * default to `null` (a create has no before; a delete has no after).

@@ -26,7 +26,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   try {
     body = await req.json();
   } catch {
-    /* empty body is fine — test the resolved config */
+    /* empty body is fine - test the resolved config */
   }
   const parsed = BodySchema.safeParse(body);
   const input = parsed.success ? parsed.data : {};

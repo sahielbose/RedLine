@@ -28,7 +28,7 @@ const globalForDb = globalThis as unknown as {
 };
 
 /**
- * The shared connection Pool. Created on first call — constructing a pg.Pool
+ * The shared connection Pool. Created on first call - constructing a pg.Pool
  * does NOT connect; the first query does. Safe to call at import time.
  */
 export function getPool(): Pool {

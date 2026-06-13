@@ -1,7 +1,7 @@
 /**
  * Validates the dashboard data layer (the contract the UI renders) and the
  * signature property: switching the active business RE-SCORES and RE-SHADES the
- * board — different states light up per profile. Hermetic (heuristic + hash).
+ * board - different states light up per profile. Hermetic (heuristic + hash).
  */
 import { describe, it, expect, beforeAll } from "vitest";
 import { computeDashboard, type DashboardData } from "@/app/lib/board";

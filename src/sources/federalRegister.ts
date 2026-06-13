@@ -2,7 +2,7 @@
  * Federal Register API v1 SourceClient (spec §5, §7; DATA_SOURCES.md).
  *
  * Gives us proposed/final rules, notices, and presidential documents with
- * comment-period metadata — the canonical source for federal rules, comment
+ * comment-period metadata - the canonical source for federal rules, comment
  * deadlines, and executive actions (e.g. the Section-321 de minimis suspension,
  * eval anchor C, lands here as an executive action, NOT on Congress.gov).
  *
@@ -13,7 +13,7 @@
  * all of history (DATA_SOURCES.md cursor rule 1).
  *
  * No fabrication (spec §15): every NormalizedItem field comes from a real API
- * field. Absent dates/fields become null — comment_close_date is parsed only
+ * field. Absent dates/fields become null - comment_close_date is parsed only
  * from `comments_close_on`.
  */
 import type { SourceClient } from "@/lib/interfaces";
@@ -23,7 +23,7 @@ import { fetchJson } from "@/sources/http";
 
 const BASE_URL = "https://www.federalregister.gov/api/v1/documents.json";
 const PER_PAGE = 100;
-/** Cold-start lookback (days) — a bounded recent window, not all of history. */
+/** Cold-start lookback (days) - a bounded recent window, not all of history. */
 const COLD_START_LOOKBACK_DAYS = 30;
 /** Safety cap on pages walked per poll so a wide window can't run unbounded. */
 const MAX_PAGES = 20;
@@ -120,8 +120,8 @@ function primaryAgency(doc: FederalRegisterDoc): string | null {
  * Exported for direct unit testing. No network, no fabrication.
  *
  * The issuing agency is set on the typed `agency` field (and mirrored into
- * `subjects` + `raw`), so Stage-0 `classifyItem` — which reads
- * `item.title + item.summary + (item.agency ?? item.source)` — keys on the real
+ * `subjects` + `raw`), so Stage-0 `classifyItem` - which reads
+ * `item.title + item.summary + (item.agency ?? item.source)` - keys on the real
  * agency token (e.g. "Federal Trade Commission"), not just title/summary
  * keyword overlap.
  */

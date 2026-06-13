@@ -1,5 +1,5 @@
 /**
- * RedLine shared domain types — the integration contract (spec §6, §9, §10).
+ * RedLine shared domain types - the integration contract (spec §6, §9, §10).
  * Every module (sources, pipeline, evals, app) codes against these. Don't drift.
  */
 import { z } from "zod";
@@ -18,7 +18,7 @@ export const ITEM_TYPES = [
 ] as const;
 export type ItemType = (typeof ITEM_TYPES)[number];
 
-/** Normalized legislative lifecycle bucket — drives the Tracker kanban (spec §2). */
+/** Normalized legislative lifecycle bucket - drives the Tracker kanban (spec §2). */
 export const STAGES = [
   "proposed",
   "comment_open",
@@ -97,7 +97,7 @@ export interface NormalizedItem {
   type: ItemType;
   identifier: string | null;
   /** Issuing agency token (e.g. "Food and Drug Administration"), when the source
-   *  has one — the strongest Stage-0 signal for rules. classifyItem reads this.
+   *  has one - the strongest Stage-0 signal for rules. classifyItem reads this.
    *  Legislatures (Congress/Open States) leave it null; bills tag via subjects/text. */
   agency?: string | null;
   title: string;
@@ -116,7 +116,7 @@ export interface NormalizedItem {
   content_hash: string;
 }
 
-// ── Stage B judge result — validated by Zod, logged to relevance_judgments ──
+// ── Stage B judge result - validated by Zod, logged to relevance_judgments ──
 export const RUBRIC_VERSION = "v1";
 export const PROMPT_VERSION = "v1";
 

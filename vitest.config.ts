@@ -8,7 +8,7 @@ export default defineConfig({
     // Stage B / embedding model loads can be slow on first run.
     testTimeout: 30_000,
     // Pin the suite to the free, deterministic local fallbacks regardless of
-    // what .env sets — tests must never hit a paid API or the network, even
+    // what .env sets - tests must never hit a paid API or the network, even
     // when an ANTHROPIC_API_KEY is configured for live use.
     env: { LLM_PROVIDER: "local", EMBEDDER: "hash" },
   },

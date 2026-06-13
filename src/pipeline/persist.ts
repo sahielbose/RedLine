@@ -1,15 +1,15 @@
 /**
- * Pipeline persistence — judgment log + DRAFT memo (spec §6, §7, §8).
+ * Pipeline persistence - judgment log + DRAFT memo (spec §6, §7, §8).
  *
  * The cost-bearing pipeline (Stage B judge → memo generator) runs pure with
  * injected I/O (see src/pipeline/score.ts, src/pipeline/memo.ts). THIS module is
  * the thin, faithful SQL sink that lands those results in Postgres:
  *
- *   - `persistJudgment` appends one `relevance_judgments` row — THE trust-tuning
+ *   - `persistJudgment` appends one `relevance_judgments` row - THE trust-tuning
  *     log; every relevance decision, with its model/prompt/rubric versions,
  *     forever (spec §6). Returns the new judgment id (so a memo can FK to it).
  *
- *   - `persistMemoDraft` inserts one `memos` row with status "draft" — and ONLY
+ *   - `persistMemoDraft` inserts one `memos` row with status "draft" - and ONLY
  *     "draft". The approval gate (spec §8, CLAUDE.md rule 10) means no memo is
  *     ever born approved or sent; a human moves it forward via review.ts. The
  *     write is paired with an `audit_log` row (action "memo.draft.created",
@@ -18,7 +18,7 @@
  *
  * Mapping notes (mirroring src/lib/adapters/drizzleItemStore.ts):
  *   - jsonb columns (`citations`) take the value as-is.
- *   - `created_at` / `approved_at` use schema defaults / stay null — never a
+ *   - `created_at` / `approved_at` use schema defaults / stay null - never a
  *     fabricated timestamp.
  *   - Absent fields are stored as NULL, never invented (spec §15).
  */
@@ -111,7 +111,7 @@ export interface PersistMemoDraftArgs {
 }
 
 /**
- * Insert a memo with status "draft" (NEVER any other status here — the approval
+ * Insert a memo with status "draft" (NEVER any other status here - the approval
  * gate, spec §8 / CLAUDE.md rule 10) and record a "memo.draft.created" audit row
  * (before = null, after = the persisted row). Returns the new memo id.
  *
@@ -134,7 +134,7 @@ export async function persistMemoDraft(db: Db, args: PersistMemoDraftArgs): Prom
         whoIsAffected: memo.who_is_affected,
         recommendedAction: memo.recommended_action,
         recommendedActionNote: memo.recommended_action_note,
-        // LABELED estimate + assumptions or null — never a bare figure (spec §15);
+        // LABELED estimate + assumptions or null - never a bare figure (spec §15);
         // sanitize happens upstream in generateMemo, persisted faithfully here.
         impactEstimate: memo.impact_estimate,
         // jsonb: store the (code-verified) citations array as-is.

@@ -2,7 +2,7 @@
  * Migration runner (spec §6). Run via `npm run db:migrate` (tsx db/migrate.ts).
  *
  * Order matters:
- *   1. CREATE EXTENSION IF NOT EXISTS vector  — pgvector must exist before any
+ *   1. CREATE EXTENSION IF NOT EXISTS vector  - pgvector must exist before any
  *      generated migration tries to create a `vector(...)` column or hnsw index.
  *      drizzle-kit only manages tables, so this guard lives here.
  *   2. Apply the SQL drizzle-kit generated into db/migrations via the

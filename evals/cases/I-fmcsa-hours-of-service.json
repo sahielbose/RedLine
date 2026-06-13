@@ -1,7 +1,7 @@
 {
   "item": "I-fmcsa-hours-of-service",
   "decoy": true,
-  "note": "Pure decoy (spec §11 I): FMCSA hours-of-service. None of these businesses is a trucking carrier — must be rejected for ALL four.",
+  "note": "Pure decoy (spec §11 I): FMCSA hours-of-service. None of these businesses is a trucking carrier - must be rejected for ALL four.",
   "expectations": {
     "saas-remote": { "min": 0, "max": 1, "band": "Low", "flag": false },
     "ecom-goods": { "min": 0, "max": 1, "band": "Low", "flag": false },

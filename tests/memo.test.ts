@@ -38,7 +38,7 @@ describe("generateMemo", () => {
     expect(["comment", "monitor", "call_counsel", "no_action"]).toContain(
       memo.content.recommended_action,
     );
-    // Every surviving citation must verify (substring of the source) — by CODE.
+    // Every surviving citation must verify (substring of the source) - by CODE.
     const src = item.full_text!.replace(/\s+/g, " ").toLowerCase();
     for (const c of memo.content.citations) {
       expect(c.verified).toBe(true);

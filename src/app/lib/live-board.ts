@@ -116,7 +116,7 @@ function agencyOf(source: string, raw: unknown): string | null {
   return r?.agencies?.[0]?.name ?? null;
 }
 
-/** Bill sponsors (display names) from the raw payload — Congress + Open States shapes.
+/** Bill sponsors (display names) from the raw payload - Congress + Open States shapes.
  *  Factual public-record names only; empty when the source list endpoint omits them. */
 function sponsorsOf(raw: unknown): string[] {
   const r = raw as Record<string, unknown> | null;

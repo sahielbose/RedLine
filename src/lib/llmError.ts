@@ -4,7 +4,7 @@
  * small, stable shape so callers can:
  *   - decide whether a corrective retry is worthwhile (`retryable`), and
  *   - show the user a precise, actionable status instead of a raw stack
- *     ("Claude is out of credits — add credits", not "400 …").
+ *     ("Claude is out of credits - add credits", not "400 …").
  *
  * Pure and dependency-free so both the Anthropic adapter and the FallbackLLM
  * wrapper can import it without a cycle.

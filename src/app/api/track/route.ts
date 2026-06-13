@@ -1,5 +1,5 @@
 /**
- * POST /api/track — track / untrack an item (spec §6 tracked_items).
+ * POST /api/track - track / untrack an item (spec §6 tracked_items).
  *
  * Body: { profileId, itemId, on }. Best-effort durable sync for the dashboard's
  * Track button: resolves the org from the profile and upserts/deletes a

@@ -5,7 +5,7 @@
  *                       echoed back; the response is the same safe view as GET.
  *
  * Self-hosted, single-tenant: there is no auth layer in v1 (AUTH_SECRET stubbed),
- * so these routes assume a trusted operator — same trust boundary as editing .env.
+ * so these routes assume a trusted operator - same trust boundary as editing .env.
  */
 import type { NextRequest } from "next/server";
 import { z } from "zod";

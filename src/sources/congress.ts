@@ -3,15 +3,15 @@
  *
  * Federal bills + resolutions. Auth is a free api.data.gov key (`?api_key=`);
  * 5,000 req/hr, ≤250 items/page. There is NO full-text search on the list
- * endpoint — we poll "changed since cursor" over UPDATE time
+ * endpoint - we poll "changed since cursor" over UPDATE time
  * (`fromDateTime`/`toDateTime`), sorted by `updateDate`, and filter locally
  * downstream (Stage 0/A/B). Full bill text is fetched lazily, per-bill, only at
  * memo time via `fetchFullText`.
  *
  * Two exports:
- *  - `normalizeCongressBill(raw)` — PURE map of one /bill list entry →
+ *  - `normalizeCongressBill(raw)` - PURE map of one /bill list entry →
  *    NormalizedItem. No I/O, no fabrication (absent fields → null).
- *  - `CongressClient` — implements SourceClient. Constructor takes optional
+ *  - `CongressClient` - implements SourceClient. Constructor takes optional
  *    `{ apiKey, fetchImpl }` so tests inject a fixture-returning fetch and never
  *    hit the live API.
  */
@@ -61,7 +61,7 @@ export interface RawCongressBill {
   type?: string | null; // 'HR', 'S', 'HJRES', 'SRES', ...
   number?: string | number | null;
   title?: string | null;
-  updateDate?: string | null; // ISO date or datetime — the polling watermark
+  updateDate?: string | null; // ISO date or datetime - the polling watermark
   updateDateIncludingText?: string | null;
   introducedDate?: string | null; // 'YYYY-MM-DD'
   originChamber?: string | null;
@@ -69,7 +69,7 @@ export interface RawCongressBill {
   sponsors?: RawCongressSponsor[] | null;
   policyArea?: { name?: string | null } | null;
   // The list endpoint usually returns subjects only as a sub-resource link, but
-  // detail responses may inline a legislativeSubjects array — read it if present.
+  // detail responses may inline a legislativeSubjects array - read it if present.
   subjects?:
     | {
         legislativeSubjects?: { name?: string | null }[] | null;
@@ -236,7 +236,7 @@ export function normalizeCongressBill(raw: RawCongressBill): NormalizedItem {
   const last_action_date = actionToIso(latestAction);
 
   // summary: only if the API actually returned summary text; else null.
-  const summary = null; // list endpoint carries no summary text — never fabricate one.
+  const summary = null; // list endpoint carries no summary text - never fabricate one.
 
   const item: NormalizedItem = {
     source: "congress",
@@ -253,7 +253,7 @@ export function normalizeCongressBill(raw: RawCongressBill): NormalizedItem {
     introduced_date: raw.introducedDate?.trim() || null,
     last_action_date,
     last_action_text,
-    comment_close_date: null, // bills have no comment period — that's Federal Register / Regs.gov
+    comment_close_date: null, // bills have no comment period - that's Federal Register / Regs.gov
     sponsors: Array.isArray(raw.sponsors) ? raw.sponsors : [],
     subjects: collectSubjects(raw),
     raw,
@@ -309,7 +309,7 @@ export class CongressClient implements SourceClient {
    * the new watermark = max updateDate seen (else the request's toDateTime).
    */
   async fetchSince(cursor: string | null): Promise<{ items: NormalizedItem[]; cursor: string }> {
-    // Congress.gov rejects sub-second precision (400) — it wants YYYY-MM-DDTHH:MM:SSZ.
+    // Congress.gov rejects sub-second precision (400) - it wants YYYY-MM-DDTHH:MM:SSZ.
     // The cursor we persist can carry milliseconds (from updateDate), so strip here
     // at the query boundary regardless of the source.
     const noMs = (iso: string) => iso.replace(/\.\d{3}(Z|[+-]\d{2}:?\d{2})$/, "$1");
@@ -358,7 +358,7 @@ export class CongressClient implements SourceClient {
    * Lazily fetch the latest bill text version (memo time only). Resolves the
    * recorded `full_text_url` (the /bill/.../text endpoint), then GETs the first
    * 'Formatted Text'/'Text' format URL. Returns the URL of the latest version so
-   * the memo layer can fetch the body — or null if none is published yet.
+   * the memo layer can fetch the body - or null if none is published yet.
    * (We return a pointer, not the raw HTML body, to avoid hard-coding a parser
    * here; the memo stage owns body retrieval/cleaning.)
    */

@@ -5,7 +5,7 @@
  * now?". A persisted, UI-managed store (a server-side JSON file, mode 0600, never
  * committed, never sent to the browser) layers ON TOP of validated env, so a user
  * can paste their own Anthropic key in the dashboard and have it take effect
- * immediately — `getLLM()` resolves through here on every call, so the change is
+ * immediately - `getLLM()` resolves through here on every call, so the change is
  * transparent to every caller (pipeline, search, jobs) with no restart.
  *
  * Precedence: stored setting (UI)  >  env (.env)  >  built-in default.
@@ -44,7 +44,7 @@ export interface ResolvedLLMConfig {
   hasAnthropicKey: boolean;
 }
 
-/** Browser-safe projection of settings — no raw secrets, ever. */
+/** Browser-safe projection of settings - no raw secrets, ever. */
 export interface SafeSettings {
   provider: LLMProvider;
   model: string;
@@ -118,7 +118,7 @@ export function resolveLLMConfig(): ResolvedLLMConfig {
   };
 }
 
-/** "sk-ant-…a1b2" — never reveals the full key. */
+/** "sk-ant-…a1b2" - never reveals the full key. */
 export function maskKey(key: string | undefined): string | null {
   if (!key) return null;
   const tail = key.slice(-4);

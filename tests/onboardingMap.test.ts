@@ -1,8 +1,8 @@
 /**
  * The "Add your business" form → engine OnboardingAnswers mapping (the pure
  * core of POST /api/profiles). Verifies the form's plain-English toggles land
- * on the typed attributes the relevance gates key on — including the FSMA
- * make/pack/hold nuance — and that the resulting profile re-scores correctly
+ * on the typed attributes the relevance gates key on - including the FSMA
+ * make/pack/hold nuance - and that the resulting profile re-scores correctly
  * through the real pipeline.
  */
 import { describe, it, expect } from "vitest";

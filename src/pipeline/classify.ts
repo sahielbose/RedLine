@@ -1,5 +1,5 @@
 /**
- * Stage 0 — category tagging + intersection (spec §7, §9).
+ * Stage 0 - category tagging + intersection (spec §7, §9).
  *
  * `classifyItem` runs the declarative TAGGING_RULES over an item's
  * title + summary + agency/source signal and returns the union of matched
@@ -15,7 +15,7 @@ import { isCategory, type Category } from "@/lib/types";
 
 /**
  * The minimal item shape Stage 0 needs. A superset of the source-signal fields
- * of `NormalizedItem` (spec §6) — we accept either a live `NormalizedItem` or an
+ * of `NormalizedItem` (spec §6) - we accept either a live `NormalizedItem` or an
  * eval fixture. `agency` is an optional explicit agency token (fixtures provide
  * it); otherwise `source` is used as the agency signal.
  */

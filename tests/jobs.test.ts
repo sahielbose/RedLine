@@ -1,11 +1,11 @@
 /**
- * Jobs — pg-boss schedules + handlers (spec §3, §14 Phase 4).
+ * Jobs - pg-boss schedules + handlers (spec §3, §14 Phase 4).
  *
  * HERMETIC by default: this suite opens NO Postgres / pg-boss connection. It
  * asserts the declarative schedule table (names + valid-looking cron strings),
  * that the handlers are exported functions, that `registerJobs` wires every
  * entry onto a FAKE boss (createQueue + schedule + work), and that the
- * approved-only digest delegation + the no-source SKIP path behave correctly —
+ * approved-only digest delegation + the no-source SKIP path behave correctly -
  * all with injected deps, no real adapters.
  *
  * A describe.skipIf(!RUN_DB_TESTS) block at the bottom exercises a REAL
@@ -64,7 +64,7 @@ function makeFakeBoss() {
   return { boss, queues, scheduled, workers };
 }
 
-/** Minimal HandlerDeps for hermetic handler tests — only override what's used. */
+/** Minimal HandlerDeps for hermetic handler tests - only override what's used. */
 function stubDeps(overrides: Partial<HandlerDeps>): HandlerDeps {
   const logger = { info: vi.fn(), error: vi.fn() };
   return {
@@ -226,11 +226,11 @@ describe("sendDigests (delegates to approved-only digest)", () => {
     expect(sendDigest.mock.calls[0][0].cadence).toBe("daily");
   });
 
-  it("NEVER inspects or mutates memo status itself — the trust gate lives in the digest module", async () => {
+  it("NEVER inspects or mutates memo status itself - the trust gate lives in the digest module", async () => {
     // sendDigests must call exactly one collaborator (deps.sendDigest); it has no
     // other path to the DB and therefore cannot send a draft on its own.
     const sendDigest = vi.fn<SendDigestFn>(async () => []);
-    // A db proxy that throws if touched — proves the handler doesn't query directly.
+    // A db proxy that throws if touched - proves the handler doesn't query directly.
     const trap = new Proxy(
       {},
       {

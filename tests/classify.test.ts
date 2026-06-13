@@ -24,7 +24,7 @@ function loadFixtureUntagged(id: string): ClassifiableItem {
   return rest as unknown as ClassifiableItem;
 }
 
-describe("classifyItem — anchors tag to the right categories", () => {
+describe("classifyItem - anchors tag to the right categories", () => {
   it("A beneficial-ownership → licensing_registration (FinCEN/CTA)", () => {
     expect(classifyItem(loadFixtureUntagged("A-beneficial-ownership"))).toContain("licensing_registration");
   });
@@ -45,7 +45,7 @@ describe("classifyItem — anchors tag to the right categories", () => {
   });
 });
 
-describe("classifyItem — expansion items", () => {
+describe("classifyItem - expansion items", () => {
   it("E COPPA → data_privacy AND software", () => {
     const cats = classifyItem(loadFixtureUntagged("E-ftc-coppa"));
     expect(cats).toContain("data_privacy");
@@ -62,7 +62,7 @@ describe("classifyItem — expansion items", () => {
   });
 });
 
-describe("classifyItem — decoys tag to nothing (precision audit)", () => {
+describe("classifyItem - decoys tag to nothing (precision audit)", () => {
   for (const id of ["I-fmcsa-hours-of-service", "J-medicare-reimbursement", "K-bank-capital"]) {
     it(`${id} → []`, () => {
       expect(classifyItem(loadFixtureUntagged(id))).toEqual([]);

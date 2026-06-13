@@ -1,7 +1,7 @@
 {
   "item": "S-faa-aircraft-certification",
   "decoy": true,
-  "note": "Decoy (sibling of I): FAA transport-category aircraft airworthiness certification. Reaches aircraft manufacturers and certificated air carriers, not any of these businesses — no subscribed category overlaps, so reject for ALL four.",
+  "note": "Decoy (sibling of I): FAA transport-category aircraft airworthiness certification. Reaches aircraft manufacturers and certificated air carriers, not any of these businesses - no subscribed category overlaps, so reject for ALL four.",
   "expectations": {
     "saas-remote": { "min": 0, "max": 1, "band": "Low", "flag": false },
     "ecom-goods": { "min": 0, "max": 1, "band": "Low", "flag": false },

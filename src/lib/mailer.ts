@@ -2,11 +2,11 @@
  * Mailer adapters (spec §4, §7).
  *
  * One `Mailer` interface, selected by env().SMTP_URL:
- *   - LogMailer  (no SMTP_URL)  — logs the email to the console and resolves.
+ *   - LogMailer  (no SMTP_URL)  - logs the email to the console and resolves.
  *                                 The hermetic dev/CI default: no network, no
  *                                 secrets, and respects the approval gate (only
- *                                 approved memos ever reach a mailer — spec §8).
- *   - SmtpMailer (SMTP_URL set) — sends via Nodemailer over any SMTP transport,
+ *                                 approved memos ever reach a mailer - spec §8).
+ *   - SmtpMailer (SMTP_URL set) - sends via Nodemailer over any SMTP transport,
  *                                 `from` = env().MAIL_FROM.
  *
  * We use Nodemailer + SMTP (MIT) rather than a proprietary email SaaS so the
@@ -31,7 +31,7 @@ export class LogMailer implements Mailer {
   }
 
   async send({ to, subject }: SendArgs): Promise<void> {
-    // Log metadata only — never dump full HTML bodies (may contain memo content).
+    // Log metadata only - never dump full HTML bodies (may contain memo content).
     // eslint-disable-next-line no-console
     console.info(`[mailer:log] would send "${subject}" from <${this.from}> to <${to}>`);
   }
@@ -51,7 +51,7 @@ interface SmtpTransport {
  * works with one env var; `from` defaults to MAIL_FROM.
  *
  * Nodemailer is imported dynamically on first `send()` so the hermetic LogMailer
- * path never loads it — `getMailer()` stays synchronous and the CI path stays
+ * path never loads it - `getMailer()` stays synchronous and the CI path stays
  * dependency-thin, while real sends still use the declared `nodemailer` dep.
  */
 export class SmtpMailer implements Mailer {

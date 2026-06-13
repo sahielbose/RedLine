@@ -2,7 +2,7 @@
  * Shared HTTP helper for SourceClients (spec §5): JSON GET with query building,
  * timeout, and rate-limit-aware retry/backoff (honors Retry-After; exponential
  * otherwise). `fetchImpl` is injectable so source clients are testable without
- * network — though most tests exercise the pure `normalize*` functions directly.
+ * network - though most tests exercise the pure `normalize*` functions directly.
  */
 type QueryValue = string | number | boolean | undefined | null;
 

@@ -1,8 +1,8 @@
 /**
- * DrizzleItemStore — INTEGRATION test (spec §6, §7, §14).
+ * DrizzleItemStore - INTEGRATION test (spec §6, §7, §14).
  *
  * This test hits a REAL Postgres and is therefore gated behind an env flag so
- * the default green gate (`npm run test`) stays fully hermetic — with no flag
+ * the default green gate (`npm run test`) stays fully hermetic - with no flag
  * set the whole suite is skipped and no socket is opened. The dedup/diff/cursor
  * SEMANTICS are proven hermetically against MemoryItemStore in tests/ingest.test.ts;
  * here we verify the production SQL mapping behaves identically against pg.
@@ -186,7 +186,7 @@ describe.skipIf(!RUN)("DrizzleItemStore (integration, RUN_DB_TESTS)", () => {
     await store.setCursor(TEST_CURSOR_SOURCE, "cursor-1", new Date("2026-06-11T00:00:00.000Z"));
     expect(await store.getCursor(TEST_CURSOR_SOURCE)).toBe("cursor-1");
 
-    // setCursor is an upsert on the PK (source) — second call updates, no dupe.
+    // setCursor is an upsert on the PK (source) - second call updates, no dupe.
     await store.setCursor(TEST_CURSOR_SOURCE, "cursor-2", new Date("2026-06-12T00:00:00.000Z"));
     expect(await store.getCursor(TEST_CURSOR_SOURCE)).toBe("cursor-2");
 

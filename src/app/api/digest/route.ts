@@ -1,11 +1,11 @@
 /**
- * POST /api/digest — "Send test digest" (spec §8 delivery, approval-gated).
+ * POST /api/digest - "Send test digest" (spec §8 delivery, approval-gated).
  *
  * Renders the APPROVED items the client sends through the real digest builder
- * (buildDigestHtml — severity-ordered, escaped, no fabricated figures) and
+ * (buildDigestHtml - severity-ordered, escaped, no fabricated figures) and
  * delivers via the configured Mailer: console LogMailer when no SMTP_URL is
  * set, real SMTP when it is. The client only ever sends items the human
- * approved in the review queue — and this endpoint renders only what it's
+ * approved in the review queue - and this endpoint renders only what it's
  * given; it cannot promote a draft.
  */
 import { NextResponse } from "next/server";
@@ -32,7 +32,7 @@ const Body = z.object({
         commentCloseDate: z.string().nullable().optional(),
       }),
     )
-    .min(1, "Approve at least one memo first — the digest sends approved items only.")
+    .min(1, "Approve at least one memo first - the digest sends approved items only.")
     .max(100),
 });
 
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
   const recipient = to || getAlertConfig().recipient || "owner@example.com";
   await getMailer().send({
     to: recipient,
-    subject: `RedLine — ${periodLabel} (${orgLabel})`,
+    subject: `RedLine - ${periodLabel} (${orgLabel})`,
     html,
   });
 

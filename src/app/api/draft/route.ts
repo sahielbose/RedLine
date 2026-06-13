@@ -1,9 +1,9 @@
 /**
- * POST /api/draft — draft a public-comment / position letter (Fed10 "draft your
+ * POST /api/draft - draft a public-comment / position letter (Fed10 "draft your
  * position paper", spec §2 ACTION, §8 approval gate).
  *
  * Returns a DRAFT letter the operator reviews and submits themselves through the
- * official portal — RedLine never auto-sends (CLAUDE.md rule 10). When the engine
+ * official portal - RedLine never auto-sends (CLAUDE.md rule 10). When the engine
  * is Claude, the letter is model-written, grounded ONLY in the supplied item text,
  * with bracketed placeholders where business-specific facts belong (no fabrication).
  * Otherwise it's a structured, honest template skeleton built locally. The local
@@ -44,9 +44,9 @@ async function profileContext(profileId: string): Promise<string | null> {
   }
 }
 
-/** Honest, grounded skeleton — no invented facts; bracketed prompts for the user. */
+/** Honest, grounded skeleton - no invented facts; bracketed prompts for the user. */
 function templateLetter(i: DraftInput): string {
-  const ref = i.identifier ? `${i.identifier} — ${i.title}` : i.title;
+  const ref = i.identifier ? `${i.identifier} - ${i.title}` : i.title;
   const basis = i.summary
     ? `As described, the proposal would ${i.summary.replace(/\.$/, "")}.`
     : "We have reviewed the proposal as published.";
@@ -58,7 +58,7 @@ We submit this comment on behalf of ${i.businessLabel} regarding ${ref}.
 
 ${basis}
 
-This measure directly affects our operations. [Describe the specific impact on your business — affected processes, estimated compliance cost and timeline, and any disproportionate burden on a business of your size.]
+This measure directly affects our operations. [Describe the specific impact on your business - affected processes, estimated compliance cost and timeline, and any disproportionate burden on a business of your size.]
 
 We respectfully request that the agency [state your ask: clarify a definition / provide a longer compliance runway / exempt small businesses below a threshold / reconsider a specific provision].
 
@@ -67,7 +67,7 @@ Thank you for the opportunity to comment.
 Sincerely,
 ${i.businessLabel}
 
-— DRAFT. Review and complete the bracketed sections, then submit through the official portal. RedLine does not send anything on your behalf.`;
+- DRAFT. Review and complete the bracketed sections, then submit through the official portal. RedLine does not send anything on your behalf.`;
 }
 
 export async function POST(req: Request): Promise<Response> {
@@ -88,7 +88,7 @@ export async function POST(req: Request): Promise<Response> {
     const out = await llm.json({
       system:
         "You draft concise, professional U.S. regulatory public-comment letters for a small business. " +
-        "Ground every factual claim ONLY in the provided item summary — do not invent provisions, numbers, dates, or effects. " +
+        "Ground every factual claim ONLY in the provided item summary - do not invent provisions, numbers, dates, or effects. " +
         "Where a business-specific fact is needed (impact, cost, headcount), insert a [bracketed placeholder] for the user to fill. " +
         "Keep it under 250 words, formal, and clearly a draft. Output JSON {\"letter\": string}.",
       user: JSON.stringify({

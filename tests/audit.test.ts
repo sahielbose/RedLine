@@ -1,5 +1,5 @@
 /**
- * audit.ts — HERMETIC test (spec §6, §8). No DB: `buildAuditEntry` is pure, so
+ * audit.ts - HERMETIC test (spec §6, §8). No DB: `buildAuditEntry` is pure, so
  * this runs in the default green gate with no socket opened. It pins the audit
  * row SHAPE (the §6 audit_log columns) and the no-fabrication invariants.
  */
@@ -33,7 +33,7 @@ describe("buildAuditEntry (pure, spec §6 audit_log shape)", () => {
     });
   });
 
-  it("exposes exactly the audit_log insert keys (no created_at — DB supplies now())", () => {
+  it("exposes exactly the audit_log insert keys (no created_at - DB supplies now())", () => {
     const entry = buildAuditEntry({
       orgId: "org-1",
       actor: SYSTEM_ACTOR,
@@ -43,7 +43,7 @@ describe("buildAuditEntry (pure, spec §6 audit_log shape)", () => {
       after: { id: "m2", status: "draft" },
     });
 
-    // created_at is intentionally absent so the column default (now()) wins —
+    // created_at is intentionally absent so the column default (now()) wins -
     // we never fabricate a timestamp (no-fabrication guardrail).
     expect(Object.keys(entry).sort()).toEqual(
       ["action", "actor", "after", "before", "entityId", "entityType", "orgId"].sort(),

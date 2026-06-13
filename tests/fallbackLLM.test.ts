@@ -1,10 +1,10 @@
 /**
- * Resilience layer (spec §4 "documented local fallback", §8 trust). Hermetic —
+ * Resilience layer (spec §4 "documented local fallback", §8 trust). Hermetic -
  * no network, no DB. Verifies that:
  *   - classifyLLMError maps real Anthropic/parse errors to stable reasons + hints,
  *   - FallbackLLM returns the primary result when Claude works,
  *   - FallbackLLM degrades to the local engine (and reports the reason) when the
- *     primary throws — the guarantee that an out-of-credits key never breaks the app.
+ *     primary throws - the guarantee that an out-of-credits key never breaks the app.
  */
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";

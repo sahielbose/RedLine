@@ -14,10 +14,10 @@ next-env.d.ts
 # testing
 /coverage
 
-# runtime settings store (server-side; holds UI-entered API keys — NEVER commit)
+# runtime settings store (server-side; holds UI-entered API keys - NEVER commit)
 /.data
 
-# env — NEVER commit real secrets; .env.example is committed
+# env - NEVER commit real secrets; .env.example is committed
 .env
 .env*.local
 .env.local

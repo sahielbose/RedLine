@@ -1,5 +1,5 @@
 /**
- * DrizzleItemStore — the production persistence behind the ingest loop (spec §6, §7).
+ * DrizzleItemStore - the production persistence behind the ingest loop (spec §6, §7).
  *
  * A thin, faithful SQL mapping of the {@link ItemStore} interface over the §6
  * `items` / `item_status_history` / `sync_state` tables. The dedup / status-diff

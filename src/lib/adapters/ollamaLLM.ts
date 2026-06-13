@@ -1,9 +1,9 @@
 /**
- * OllamaLLM — local-model `LLM` adapter via Ollama's HTTP API (spec §4, §15).
+ * OllamaLLM - local-model `LLM` adapter via Ollama's HTTP API (spec §4, §15).
  *
  * The fully-self-hostable path: POSTs to {OLLAMA_BASE_URL}/api/chat with
  * `format: "json"`, then validates the returned content against the caller's Zod
- * schema. No SDK dependency — plain `fetch` against a local server. Retries once
+ * schema. No SDK dependency - plain `fetch` against a local server. Retries once
  * on a parse/validate failure. Errors are clear when the server is unreachable.
  */
 import type { ZodSchema } from "zod";
@@ -22,7 +22,7 @@ export class OllamaLLM implements LLM {
   constructor(model?: string) {
     this.baseUrl = env().OLLAMA_BASE_URL.replace(/\/+$/, "");
     // Ollama uses its own model tags (e.g. "llama3.1"); reuse ANTHROPIC_MODEL
-    // only as a last-resort default — operators should pass an Ollama tag.
+    // only as a last-resort default - operators should pass an Ollama tag.
     this.model = model ?? "llama3.1";
   }
 

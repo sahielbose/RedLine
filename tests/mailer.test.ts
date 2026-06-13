@@ -1,5 +1,5 @@
 /**
- * Mailer tests — hermetic (no SMTP server, no credentials, no network).
+ * Mailer tests - hermetic (no SMTP server, no credentials, no network).
  * With no SMTP_URL the factory must return a LogMailer whose send() resolves
  * without throwing, so the digest job can run end-to-end in dev/CI.
  */

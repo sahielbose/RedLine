@@ -1,9 +1,9 @@
 /**
- * Review queue — the approval gate (spec §8, CLAUDE.md rule 10).
+ * Review queue - the approval gate (spec §8, CLAUDE.md rule 10).
  *
  * Memos are born "draft" (see src/pipeline/persist.ts). NOTHING leaves RedLine
  * without a human acting here: a person approves or rejects a draft, and only an
- * APPROVED memo can later be marked "sent" by the digest — there is no auto-send.
+ * APPROVED memo can later be marked "sent" by the digest - there is no auto-send.
  *
  * The legal state machine (memos.status):
  *
@@ -12,14 +12,14 @@
  *       └──rejectMemo──▶ rejected
  *
  * Every mutation:
- *   1. reads the prior row (the audit BEFORE-image — never reconstructed),
+ *   1. reads the prior row (the audit BEFORE-image - never reconstructed),
  *   2. guards the transition (throws a clear error from a non-legal source state),
  *   3. updates the row, and
  *   4. writes an `audit_log` row with before AND after (spec §6, §8).
  *
  * `userId` is the acting human's uuid → recorded as the audit `actor` and, for
  * approval, persisted to `memos.approved_by`. Timestamps come from `now()` (the
- * DB clock) — we never fabricate a time.
+ * DB clock) - we never fabricate a time.
  */
 import { and, desc, eq, sql } from "drizzle-orm";
 
@@ -46,7 +46,7 @@ export interface DraftMemoListItem {
 
 /**
  * List the org's DRAFT memos, newest first, each joined to its item so the
- * review queue can show a title + identifier. Only status = "draft" appears —
+ * review queue can show a title + identifier. Only status = "draft" appears -
  * approved/rejected/sent memos have left the queue.
  */
 export async function listDraftMemos(db: Db, orgId: string): Promise<DraftMemoListItem[]> {
@@ -106,7 +106,7 @@ export interface ApproveMemoArgs {
  * row). Throws if the memo is not currently "draft" (you can only approve a draft).
  */
 export async function approveMemo(db: Db, { memoId, userId }: ApproveMemoArgs): Promise<Memo> {
-  // The status change and its audit row commit ATOMICALLY — a crash can never
+  // The status change and its audit row commit ATOMICALLY - a crash can never
   // leave a state change without its audit_log entry (spec §8 guarantee).
   return db.transaction(async (tx) => {
     const before = await loadMemo(tx, memoId);
@@ -185,12 +185,12 @@ export interface MarkSentArgs {
 }
 
 /**
- * Mark an APPROVED memo as "sent" — called by the digest AFTER human approval.
+ * Mark an APPROVED memo as "sent" - called by the digest AFTER human approval.
  * Status moves "approved" → "sent" ONLY; throws from any other state. This is
  * the code-level guarantee that nothing auto-sends: a memo cannot reach "sent"
  * without having first passed through human {@link approveMemo}.
  *
- * Actor is "system" — the delivery job marks the send; the human authorization
+ * Actor is "system" - the delivery job marks the send; the human authorization
  * already happened at approval time (recorded in that memo.approved audit row).
  */
 export async function markSent(db: Db, { memoId }: MarkSentArgs): Promise<Memo> {

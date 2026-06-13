@@ -1,5 +1,5 @@
 /**
- * Comment-deadline alert tests — PURE / hermetic (spec §2 Alerts, §14 Phase 4).
+ * Comment-deadline alert tests - PURE / hermetic (spec §2 Alerts, §14 Phase 4).
  *
  * `now` is injected, so the window math is deterministic with zero
  * infrastructure. We assert: only items closing within [now, now+withinDays] are

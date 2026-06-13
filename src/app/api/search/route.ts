@@ -259,7 +259,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           type: "stage",
           key: "judge",
           status: "done",
-          detail: fallbackHint ? `${relevant} relevant · judged locally — ${fallbackHint}` : `${relevant} relevant`,
+          detail: fallbackHint ? `${relevant} relevant · judged locally - ${fallbackHint}` : `${relevant} relevant`,
         });
         send({ type: "done", count: rows.length, relevant, notice: fallbackHint ?? null });
       } catch (err) {

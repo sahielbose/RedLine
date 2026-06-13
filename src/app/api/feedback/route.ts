@@ -1,5 +1,5 @@
 /**
- * POST /api/feedback — 👍/👎 relevance feedback (spec §8 feedback loop).
+ * POST /api/feedback - 👍/👎 relevance feedback (spec §8 feedback loop).
  *
  * Records a human relevance label into relevance_feedback, the table that feeds
  * new eval labels. Body: { profileId, itemId, label: 'relevant'|'not_relevant', on }.

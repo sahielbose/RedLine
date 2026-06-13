@@ -1,5 +1,5 @@
 /**
- * Trust layer — INTEGRATION test (spec §6, §7, §8, §14).
+ * Trust layer - INTEGRATION test (spec §6, §7, §8, §14).
  *
  * Hits a REAL Postgres, so it is gated behind RUN_DB_TESTS: with no flag set the
  * whole suite is skipped and NO socket is opened, keeping the default gate

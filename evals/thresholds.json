@@ -3,5 +3,5 @@
   "recall": 1.0,
   "f1": 0.9,
   "flag_score": 3,
-  "note": "A (item,profile) pair is 'flagged' when score >= flag_score. Recall on anchors MUST be 1.0 — a recall drop is a regression (CLAUDE.md golden rule #2)."
+  "note": "A (item,profile) pair is 'flagged' when score >= flag_score. Recall on anchors MUST be 1.0 - a recall drop is a regression (CLAUDE.md golden rule #2)."
 }

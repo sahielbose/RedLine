@@ -1,7 +1,7 @@
 /**
  * Seed the four eval-anchor organizations + profiles (spec §10, §11).
  *
- * The four profiles — saas-remote, ecom-goods, food-cpg, hardware-maker — are
+ * The four profiles - saas-remote, ecom-goods, food-cpg, hardware-maker - are
  * the horizontal-relevance matrix: the same rule is a five-alarm threat to one
  * and pure noise to another (spec §11). Their subscribed_categories are
  * BASE (all 8, every business shares them) + the business-type module(s):
@@ -9,15 +9,15 @@
  *   goods    → +goods
  *   food     → +food
  *   hardware → +hardware,+goods  (the hardware module includes everything in
- *              goods — customs/sales-tax/marketplace — per §9).
+ *              goods - customs/sales-tax/marketplace - per §9).
  *
  * Idempotent: upsert by organization name. Every write is wrapped in an
  * audit_log row (spec §8 trust layer). Embeddings are intentionally left null
- * here — the pipeline computes them from concern_text via the configured
+ * here - the pipeline computes them from concern_text via the configured
  * Embedder (vector width = env().EMBED_DIM).
  *
  * Run via `npm run db:seed` (tsx db/seed.ts). This script connects (its job);
- * importing it does NOT connect — main() only runs when invoked directly.
+ * importing it does NOT connect - main() only runs when invoked directly.
  */
 import { eq } from "drizzle-orm";
 import { getDb, closeDb } from "@/lib/db";
@@ -121,7 +121,7 @@ export const SEED_PROFILES: SeedProfile[] = [
       "Food CPG maker in TX, 40 W-2 staff, manufactures, packs, holds and distributes packaged " +
       "food products to retailers. In FSMA 204 traceability scope. Hurt by changes to food safety " +
       "and traceability rules, food labeling, health permits. Does NOT sell subscriptions, build " +
-      "devices, or import goods. A dine-in-only restaurant would be largely exempt — supply-chain " +
+      "devices, or import goods. A dine-in-only restaurant would be largely exempt - supply-chain " +
       "role (make/pack/hold) is what brings this business into scope.",
   },
   {
@@ -159,7 +159,7 @@ export const SEED_PROFILES: SeedProfile[] = [
 async function upsertOrg(p: SeedProfile): Promise<string> {
   const db = getDb();
 
-  // 1. Organization — upsert by name (the stable key).
+  // 1. Organization - upsert by name (the stable key).
   const existingOrg = await db
     .select()
     .from(organizations)
@@ -186,7 +186,7 @@ async function upsertOrg(p: SeedProfile): Promise<string> {
     });
   }
 
-  // 2. Profile — one active profile per org; upsert by org_id.
+  // 2. Profile - one active profile per org; upsert by org_id.
   const profileValues: Omit<NewOrgProfile, "id" | "createdAt" | "embedding"> = {
     orgId,
     businessTypes: p.businessTypes,
@@ -240,7 +240,7 @@ async function main(): Promise<void> {
   for (const p of SEED_PROFILES) {
     const orgId = await upsertOrg(p);
     console.log(
-      `[seed]   ✓ ${p.slug} (org ${orgId}) — ${p.subscribedCategories.length} categories: ` +
+      `[seed]   ✓ ${p.slug} (org ${orgId}) - ${p.subscribedCategories.length} categories: ` +
         p.subscribedCategories.join(", "),
     );
   }

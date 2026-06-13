@@ -1,7 +1,7 @@
 /**
  * Citation verification (spec §7, §8, CLAUDE.md §9).
  *
- * CODE decides whether a citation is real — never the model. A citation is
+ * CODE decides whether a citation is real - never the model. A citation is
  * "verified" iff its snippet, after whitespace normalization, is a substring of
  * the source text (also whitespace-normalized). Unverifiable citations are
  * flagged (verified=false) so the memo layer can drop or surface them.
@@ -16,7 +16,7 @@ function normalize(s: string): string {
 /**
  * True iff `snippet` is a whitespace-normalized substring of `sourceText`.
  * Empty snippets never verify (an empty string is trivially a substring, which
- * would let the model "cite nothing" — reject that).
+ * would let the model "cite nothing" - reject that).
  */
 export function verifyCitation(sourceText: string, snippet: string): boolean {
   const s = normalize(snippet);

@@ -1,6 +1,6 @@
 /**
  * The shared interfaces (spec §7). These are the integration points every
- * module codes against — kept verbatim from the spec. Adapters live in
+ * module codes against - kept verbatim from the spec. Adapters live in
  * src/lib/adapters/ behind these; each has a documented local fallback.
  */
 import type { ZodSchema } from "zod";

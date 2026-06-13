@@ -1,7 +1,7 @@
 {
   "item": "P-medicare-physician-fee",
   "decoy": true,
-  "note": "Decoy (sibling of J): Medicare Physician Fee Schedule (CMS). Reaches clinicians/practices that bill Medicare, not any of these businesses — no subscribed category overlaps, so reject for ALL four.",
+  "note": "Decoy (sibling of J): Medicare Physician Fee Schedule (CMS). Reaches clinicians/practices that bill Medicare, not any of these businesses - no subscribed category overlaps, so reject for ALL four.",
   "expectations": {
     "saas-remote": { "min": 0, "max": 1, "band": "Low", "flag": false },
     "ecom-goods": { "min": 0, "max": 1, "band": "Low", "flag": false },

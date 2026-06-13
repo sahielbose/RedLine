@@ -1,5 +1,5 @@
 /**
- * POST /api/profiles — "Add your business" (the two-minute onboarding, spec §10).
+ * POST /api/profiles - "Add your business" (the two-minute onboarding, spec §10).
  *
  * Takes the modal form, builds a REAL BusinessProfile through the engine's
  * onboarding (concern_text with positives AND negatives + an embedding), then
@@ -19,7 +19,7 @@ import { AddBusinessSchema, formMeta, toOnboardingAnswers } from "@/app/lib/onbo
 
 export const dynamic = "force-dynamic";
 
-/** DELETE /api/profiles?id=… — soft-delete a custom profile (is_active=false) so
+/** DELETE /api/profiles?id=… - soft-delete a custom profile (is_active=false) so
  *  it stops showing up via the live board. Best-effort: a no-op when the profile
  *  was never persisted to Postgres (client-only) or the DB is unreachable. */
 export async function DELETE(req: Request): Promise<Response> {
@@ -28,7 +28,7 @@ export async function DELETE(req: Request): Promise<Response> {
   try {
     await getPool().query(`UPDATE org_profiles SET is_active = false WHERE id = $1`, [id]);
   } catch {
-    /* DB absent or profile was client-only — the client already removed it. */
+    /* DB absent or profile was client-only - the client already removed it. */
   }
   return NextResponse.json({ ok: true });
 }

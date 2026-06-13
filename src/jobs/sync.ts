@@ -1,17 +1,17 @@
 /**
  * One-shot sync runner (the human-invoked entrypoint Phase 4 left as a TODO).
  *
- *   npm run ingest   — pull a recent window of real bills/rules from the live
+ *   npm run ingest   - pull a recent window of real bills/rules from the live
  *                      APIs (Federal Register needs no key; Congress + Open
  *                      States use the api.data.gov / pluralpolicy keys in .env)
  *                      → normalize → upsert → status_history → classify → embed.
- *   npm run score    — score every active org profile against the ingested items
+ *   npm run score    - score every active org profile against the ingested items
  *                      (Stage 0/A/B), log judgments, draft memos. Uses whatever
  *                      LLM_PROVIDER is set (anthropic = real Claude, cheapest model).
- *   npm run sync     — ingest, then score.
+ *   npm run sync     - ingest, then score.
  *
  * Requires the DB up + migrated (npm run db:up && npm run db:migrate && npm run db:seed).
- * Real data only — no fabrication anywhere in the pipeline.
+ * Real data only - no fabrication anywhere in the pipeline.
  */
 import { defaultDeps, ingestSource, scoreActiveProfiles } from "@/jobs/handlers";
 import { closeDb } from "@/lib/db";
@@ -25,7 +25,7 @@ async function ingestAll() {
   const totals = { fetched: 0, inserted: 0, updated: 0, unchanged: 0 };
   for (const key of SOURCES) {
     if (!sourceIsLiveReady(key)) {
-      console.log(`[sync] skip ${key} — no API key set`);
+      console.log(`[sync] skip ${key} - no API key set`);
       continue;
     }
     const started = Date.now();

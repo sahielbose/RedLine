@@ -12,7 +12,7 @@ export interface OnboardingAnswers {
   jurisdictions: string[]; // ['us','us-ca',...]
   business_types: BusinessType[]; // software | goods | food | hardware (toggles)
   attributes: ProfileAttributes;
-  /** Free-text "what's proprietary about us" — policy positions, focus areas,
+  /** Free-text "what's proprietary about us" - policy positions, focus areas,
    *  what would help/hurt/blindside us. Folded into concern_text so it directly
    *  steers Stage A (embedding) + Stage B (judge). The user's own words. */
   context?: string;
@@ -32,7 +32,7 @@ function list(parts: string[]): string {
 /**
  * Generate the concern_text: a compact description encoding what the business
  * IS (positives → relevance) and IS NOT (negatives → rejections). Built only
- * from the structured answers — no fabrication.
+ * from the structured answers - no fabrication.
  */
 export function generateConcernText(answers: OnboardingAnswers): string {
   const a = answers.attributes;

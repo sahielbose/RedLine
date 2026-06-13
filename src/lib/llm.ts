@@ -1,6 +1,6 @@
 /**
  * LLM factory (spec §4, §7). Selects an `LLM` adapter from the resolved runtime
- * config (a UI-supplied key/model/provider overrides env — see lib/settings):
+ * config (a UI-supplied key/model/provider overrides env - see lib/settings):
  *   provider=local     → HeuristicLLM  (default; hermetic, zero secrets)
  *   provider=anthropic → AnthropicLLM wrapped in FallbackLLM (Claude → local)
  *   provider=ollama    → OllamaLLM wrapped in FallbackLLM (local model → heuristic)

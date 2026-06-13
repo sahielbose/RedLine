@@ -1,5 +1,5 @@
 /**
- * DrizzlePrefilter — the production Stage A pgvector prefilter (spec §7).
+ * DrizzlePrefilter - the production Stage A pgvector prefilter (spec §7).
  *
  * A faithful SQL implementation of the {@link Prefilter} interface, equivalent to
  * the in-memory {@link MemoryPrefilter}: it applies the SAME WHERE semantics
@@ -25,21 +25,21 @@
  *  - We stay inside the typed query builder (db.select().from(items)…) and drop to
  *    `sql` fragments only for the two pgvector / array operators, mirroring how
  *    drizzleItemStore uses `sql` for now()/xmax. The select projection types the
- *    returned rows directly — no manual `.rows` unwrapping.
+ *    returned rows directly - no manual `.rows` unwrapping.
  *  - SAFE pgvector literal: the profile embedding is a number[]. pgvector has no
  *    native param binding here, so the vector is rendered into the SQL text. To
  *    keep that injection-proof we VALIDATE every element is a finite number first
- *    (toVectorLiteral throws otherwise) and emit only `[n,n,...]` — there is no
+ *    (toVectorLiteral throws otherwise) and emit only `[n,n,...]` - there is no
  *    path for attacker-controlled strings to reach the SQL. The literal is cast
  *    `::vector` so Postgres parses it as a vector value.
  *  - jurisdictions / subscribed_categories are bound as `text[]` PARAMS via
- *    sql.param(...) — parameterized, never interpolated (Stage 0 holds, and the
+ *    sql.param(...) - parameterized, never interpolated (Stage 0 holds, and the
  *    array contents can never break out of the query).
  *  - `embedding IS NOT NULL` keeps NULL-embedding rows out of the cosine ordering
  *    (they would sort unpredictably and never have a meaningful similarity).
  *  - Null profile embedding: there is nothing to rank against, so we fall back to
  *    `ORDER BY last_synced_at DESC` (freshest first) but STILL apply the
- *    jurisdiction + category-overlap WHERE so Stage 0 is never bypassed — exactly
+ *    jurisdiction + category-overlap WHERE so Stage 0 is never bypassed - exactly
  *    MemoryPrefilter's behavior (it returns the same matched set, similarity 0).
  *  - similarity is `1 - cosine_distance` ∈ [-1, 1] (1 = identical direction),
  *    matching cosineSimilarity() used by MemoryPrefilter. In the null-embedding
@@ -51,7 +51,7 @@
  *     happens to lack an item embedding, whereas MemoryPrefilter would surface it
  *     at similarity 0. The ingest loop (runIngest) embeds EVERY item before
  *     upsert, so a persisted item with categories set but a NULL embedding does
- *     not occur in practice — the divergence is unreachable on real data.
+ *     not occur in practice - the divergence is unreachable on real data.
  *  2. Spec §7's Stage-A query lists `AND i.last_synced_at > $4` (a freshness
  *     window). We intentionally omit it: scoreBoard scores the FULL current board
  *     for a profile, not just freshly-synced items. Incremental "score only what
@@ -77,7 +77,7 @@ import { items } from "@db/schema";
  *
  * pgvector accepts a literal of the form `[1,2,3]`. We validate that every
  * element is a finite number before interpolation so the produced string is
- * always digits / signs / dots / commas — there is no way for caller data to
+ * always digits / signs / dots / commas - there is no way for caller data to
  * inject SQL. `Number.isFinite` rejects NaN, ±Infinity, and non-numbers. The
  * vector must be non-empty (an empty vector has no meaningful cosine distance).
  */
@@ -117,7 +117,7 @@ export class DrizzlePrefilter implements Prefilter {
     const jurisdictions = sql.param(profile.jurisdictions);
     const categories = sql.param(profile.subscribed_categories);
 
-    // Stage 0 + jurisdiction WHERE — applied for BOTH ranking modes so a
+    // Stage 0 + jurisdiction WHERE - applied for BOTH ranking modes so a
     // null-embedding profile never bypasses the category/jurisdiction gate.
     const whereClause = sql`${items.jurisdiction} = ANY(${jurisdictions}) and ${items.categories} && ${categories}`;
 

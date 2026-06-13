@@ -2,7 +2,7 @@
  * Unit tests for the relevance engine (spec §7, §11).
  *
  * Asserts heuristicJudge produces the expected severity bands for the four
- * ANCHOR items × four profiles — and crucially that the SAME item scores
+ * ANCHOR items × four profiles - and crucially that the SAME item scores
  * differently per profile (the horizontal-relevance property). Profiles +
  * fixtures are loaded from the golden eval set so the tests and the eval matrix
  * stay in lockstep.
@@ -38,7 +38,7 @@ function flagged(score: number): boolean {
   return score >= 3;
 }
 
-describe("heuristicJudge — anchor matrix (spec §11)", () => {
+describe("heuristicJudge - anchor matrix (spec §11)", () => {
   // Each entry: [fixtureId, expected per-profile {flag, band-or-bands}]
   const cases: Array<{
     id: string;
@@ -99,7 +99,7 @@ describe("heuristicJudge — anchor matrix (spec §11)", () => {
   }
 });
 
-describe("heuristicJudge — horizontal relevance (same item, different profiles)", () => {
+describe("heuristicJudge - horizontal relevance (same item, different profiles)", () => {
   it("the import de minimis item flags goods + hardware and rejects saas + food", () => {
     const item = loadFixture("C-import-de-minimis");
     expect(heuristicJudge(profiles["ecom-goods"], item).score).toBeGreaterThanOrEqual(4);
@@ -118,7 +118,7 @@ describe("heuristicJudge — horizontal relevance (same item, different profiles
   });
 });
 
-describe("heuristicJudge — attribute gating (general, not item-id based)", () => {
+describe("heuristicJudge - attribute gating (general, not item-id based)", () => {
   it("FSMA scope depends on supply-chain role, not just serving food (spec §11 D)", () => {
     const item = loadFixture("D-fda-fsma-204");
     const food = profiles["food-cpg"];

@@ -1,11 +1,11 @@
 /**
- * Open States / Plural v3 REST SourceClient (spec §5, DATA_SOURCES.md) — state
+ * Open States / Plural v3 REST SourceClient (spec §5, DATA_SOURCES.md) - state
  * bills, CALIFORNIA first.
  *
  * AUTH: free key, sent as the `X-API-Key` header (the v3 REST gateway also
  * accepts `?apikey=`; we use the header). Set OPENSTATES_API_KEY in .env.
  *
- * V3 REST ONLY. The legacy GraphQL v2 API is sunset — do not use it.
+ * V3 REST ONLY. The legacy GraphQL v2 API is sunset - do not use it.
  *
  * ── COVERAGE / LATENCY VARIES BY STATE ──────────────────────────────────────
  * Open States ingests each state's legislature on a per-state cadence; freshness
@@ -17,7 +17,7 @@
  *
  * ── THE STATE-REGULATORY-REGISTER GAP (document, do not hide) ────────────────
  * Open States covers BILLS ONLY (statute). Much of what actually hits a small
- * business is state *regulation* — a state agency rulemaking — which lives in
+ * business is state *regulation* - a state agency rulemaking - which lives in
  * each state's regulatory register / OAL-equivalent and is NOT in Open States
  * and NOT in the Federal Register (federal only). An MVP wired to
  * "Open States + Federal Register" will look complete and silently miss state
@@ -175,7 +175,7 @@ function mapType(classification: string[] | null | undefined): ItemType {
  * Map a bill's action history + latest action to our normalized lifecycle
  * Stage. Open States actions carry an OpenCivicData `classification[]`
  * (e.g. 'introduction', 'passage', 'executive-signature', 'became-law',
- * 'withdrawal', 'failure'). We read those real tags only — never guess.
+ * 'withdrawal', 'failure'). We read those real tags only - never guess.
  * Returns null when nothing in the record indicates a stage.
  */
 export function mapStage(bill: OpenStatesBill): Stage | null {
@@ -219,7 +219,7 @@ function mapSponsors(sponsorships: OSSponsorship[] | null | undefined): unknown[
 }
 
 /**
- * Pure normalizer: one v3 bill → NormalizedItem. No fabrication — absent fields
+ * Pure normalizer: one v3 bill → NormalizedItem. No fabrication - absent fields
  * become null. `jurisdictionCode` defaults to 'us-ca' (CA first).
  */
 export function normalizeOpenStatesBill(raw: OpenStatesBill, jurisdictionCode = "us-ca"): NormalizedItem {
@@ -297,7 +297,7 @@ export class OpenStatesClient implements SourceClient {
     return since.toISOString();
   }
 
-  /** v3 wants YYYY-MM-DDTHH:MM:SS — no ms, no 'Z' (both 400 the gateway). */
+  /** v3 wants YYYY-MM-DDTHH:MM:SS - no ms, no 'Z' (both 400 the gateway). */
   private normSince(raw: string): string {
     const parsed = new Date(raw);
     return Number.isNaN(parsed.getTime()) ? raw.slice(0, 19) : parsed.toISOString().slice(0, 19);

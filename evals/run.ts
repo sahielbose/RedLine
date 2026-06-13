@@ -1,5 +1,5 @@
 /**
- * RedLine eval harness (spec §8, §11) — the highest-leverage trust artifact.
+ * RedLine eval harness (spec §8, §11) - the highest-leverage trust artifact.
  *
  * Loads the four business profiles + golden cases + fixtures, runs Stage 0
  * (classifyItem) + Stage B (judge via getLLM(), local/hermetic by default) for
@@ -111,7 +111,7 @@ async function main(): Promise<void> {
   const decoyItemIds = new Set(cases.filter((c) => c.decoy).map((c) => c.item));
   const allSubscribed = [...new Set(Object.values(profiles).flatMap((p) => p.subscribed_categories))];
 
-  console.log(BOLD("\n🟥 RedLine eval — relevance matrix\n"));
+  console.log(BOLD("\n🟥 RedLine eval - relevance matrix\n"));
   console.log(`LLM provider: ${process.env.LLM_PROVIDER ?? "local"}  ·  flag threshold: score >= ${FLAG}\n`);
 
   // ── Case-integrity: the declared `band` must be consistent with [min,max] ──
@@ -134,7 +134,7 @@ async function main(): Promise<void> {
   // fixture's explicit `categories`. That would let a broken keyword tagger pass
   // unnoticed. So independently run classifyItem (keyword/agency only) and assert:
   //   • non-decoy fixtures: the tagger recovers >=1 of the declared categories
-  //     (else Stage 0 would drop the item before any judge sees it — a recall hole);
+  //     (else Stage 0 would drop the item before any judge sees it - a recall hole);
   //   • decoy fixtures: the tagger produces no category any profile subscribes to
   //     (else a decoy would leak into a judge).
   const taggingRecallMisses: string[] = [];
@@ -149,7 +149,7 @@ async function main(): Promise<void> {
       }
     } else if (declared.length > 0 && categoryIntersect(taggerCats, declared).length === 0) {
       taggingRecallMisses.push(
-        `${fixture.id}: keyword tagger produced {${taggerCats.join(", ") || "∅"}}, recovering none of the declared {${declared.join(", ")}} — Stage 0 would drop this item`,
+        `${fixture.id}: keyword tagger produced {${taggerCats.join(", ") || "∅"}}, recovering none of the declared {${declared.join(", ")}} - Stage 0 would drop this item`,
       );
     }
   }
@@ -201,16 +201,16 @@ async function main(): Promise<void> {
       if (predFlag && expFlag) tp++;
       else if (predFlag && !expFlag) {
         fp++;
-        falsePositives.push(`${c.item} × ${pk}: predicted ${score} (flagged) but expected NOT flagged — "${j.justification}"`);
+        falsePositives.push(`${c.item} × ${pk}: predicted ${score} (flagged) but expected NOT flagged - "${j.justification}"`);
       } else if (!predFlag && expFlag) {
         fn++;
-        falseNegatives.push(`${c.item} × ${pk}: predicted ${score} (NOT flagged) but expected FLAGGED — "${j.justification}"`);
+        falseNegatives.push(`${c.item} × ${pk}: predicted ${score} (NOT flagged) but expected FLAGGED - "${j.justification}"`);
       } else tn++;
 
       // Score-range check.
       if (score < expect.min || score > expect.max) {
         rangeMisses.push(
-          `${c.item} × ${pk}: score ${score} outside expected [${expect.min}..${expect.max}] — "${j.justification}"`,
+          `${c.item} × ${pk}: score ${score} outside expected [${expect.min}..${expect.max}] - "${j.justification}"`,
         );
       }
 
@@ -254,10 +254,10 @@ async function main(): Promise<void> {
 
   // ── False negatives (LOUD) ─────────────────────────────────────────────────
   if (falseNegatives.length > 0) {
-    console.log(RED(BOLD("\n⚠️  FALSE NEGATIVES — dangerous misses (a customer's rule would slip through):")));
+    console.log(RED(BOLD("\n⚠️  FALSE NEGATIVES - dangerous misses (a customer's rule would slip through):")));
     for (const m of falseNegatives) console.log(RED("   ✗ " + m));
   } else {
-    console.log(GREEN("No false negatives — every expected flag was caught."));
+    console.log(GREEN("No false negatives - every expected flag was caught."));
   }
 
   if (falsePositives.length > 0) {
@@ -328,10 +328,10 @@ async function main(): Promise<void> {
   const pass = metricsOk && noFalseNegatives && headlineOk && rangeOk && bandOk && taggingOk && caseIntegrityOk;
 
   if (pass) {
-    console.log(GREEN(BOLD("\n✅ EVAL GREEN — thresholds met, headline holds, no false negatives.\n")));
+    console.log(GREEN(BOLD("\n✅ EVAL GREEN - thresholds met, headline holds, no false negatives.\n")));
     process.exit(0);
   } else {
-    console.log(RED(BOLD("\n❌ EVAL FAILED — see issues above.")));
+    console.log(RED(BOLD("\n❌ EVAL FAILED - see issues above.")));
     if (!metricsOk) console.log(RED("   • A metric fell below threshold."));
     if (!noFalseNegatives) console.log(RED("   • There are false negatives (recall regression)."));
     if (!headlineOk) console.log(RED("   • The headline horizontal-relevance assertion failed."));

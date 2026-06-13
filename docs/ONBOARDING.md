@@ -6,7 +6,7 @@
 
 ## Onboarding is part of the engine
 
-The profile is the query the entire relevance funnel runs against. A weak profile produces weak scores no matter how good the judge is — so onboarding maps a handful of plain questions into the structured fields the pipeline needs, **including the negatives** that make the judge *reject* off-target rules.
+The profile is the query the entire relevance funnel runs against. A weak profile produces weak scores no matter how good the judge is - so onboarding maps a handful of plain questions into the structured fields the pipeline needs, **including the negatives** that make the judge *reject* off-target rules.
 
 ## Question → field map
 
@@ -23,7 +23,7 @@ The profile is the query the entire relevance funnel runs against. A weak profil
 | Import anything? | `attributes.imports_goods` | customs / de minimis (anchor C). |
 | Collect customer data online? | `attributes.collects_customer_data_online` | `data_privacy`. |
 | Data from children under 13? | `attributes.data_from_children_under_13` | COPPA (anchor E). |
-| For food: make/pack/hold vs only serve? | `attributes.food_supply_chain_role` (`make_pack_hold`/`serve_only`/`distribute`/null) | FSMA 204 scope — `make_pack_hold`/`distribute` in scope, `serve_only` largely exempt (anchor D). |
+| For food: make/pack/hold vs only serve? | `attributes.food_supply_chain_role` (`make_pack_hold`/`serve_only`/`distribute`/null) | FSMA 204 scope - `make_pack_hold`/`distribute` in scope, `serve_only` largely exempt (anchor D). |
 | Serves food at all? | `attributes.serves_food` | gates `food` module. |
 
 `ProfileAttributes` is typed for these known keys plus an index signature, so onboarding can add questions without breaking the contract.
@@ -32,10 +32,10 @@ The profile is the query the entire relevance funnel runs against. A weak profil
 
 From the answers, derive:
 
-1. **`business_types`** — the set of module toggles selected.
-2. **`subscribed_categories`** — **all 8 base categories** (every business is an employer/operator) **+** one set of module cats per active `business_type`. (`hardware` implies `goods` per [TAXONOMY](./TAXONOMY.md).)
-3. **`concern_text`** — a generated paragraph encoding **positives and negatives**, embedded for Stage A and handed to the Stage B judge. The negatives are what reject decoys — see the example.
-4. **`embedding`** — `Embedder.embed([concern_text])` → `org_profiles.embedding`.
+1. **`business_types`** - the set of module toggles selected.
+2. **`subscribed_categories`** - **all 8 base categories** (every business is an employer/operator) **+** one set of module cats per active `business_type`. (`hardware` implies `goods` per [TAXONOMY](./TAXONOMY.md).)
+3. **`concern_text`** - a generated paragraph encoding **positives and negatives**, embedded for Stage A and handed to the Stage B judge. The negatives are what reject decoys - see the example.
+4. **`embedding`** - `Embedder.embed([concern_text])` → `org_profiles.embedding`.
 
 ### Example profile (note the negatives)
 
@@ -68,6 +68,6 @@ These live under `evals/profiles/` and pin the relevance matrix ([EVALS](./EVALS
 | `food-cpg` | `["food"]` | **makes + distributes** food (`make_pack_hold`), may import ingredients | flags D (4–5); rejects B; C only if it imports |
 | `hardware-maker` | `["hardware"]` | builds a device, imports parts, sells D2C | flags C (5), H; (inherits `goods`) |
 
-All four should **flag anchor A** (beneficial-ownership / CTA) at 3–4 — the textbook universal base item — and **reject the all-profile decoys** (FMCSA hours-of-service, etc.).
+All four should **flag anchor A** (beneficial-ownership / CTA) at 3–4 - the textbook universal base item - and **reject the all-profile decoys** (FMCSA hours-of-service, etc.).
 
 The "Viewing as {business}" switcher re-runs scoring against whichever of these profiles is active; the same item gets a different severity stamp per profile, which is the signature interaction and the core acceptance test (spec §14).

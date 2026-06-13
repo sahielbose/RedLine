@@ -59,7 +59,7 @@ describe("normalizeIdentifier", () => {
   });
 });
 
-describe("normalizeOpenStatesBill — the bill (AB 123)", () => {
+describe("normalizeOpenStatesBill - the bill (AB 123)", () => {
   const item = normalizeOpenStatesBill(bill1, "us-ca");
 
   it("maps source, external_id, jurisdiction", () => {
@@ -118,7 +118,7 @@ describe("normalizeOpenStatesBill — the bill (AB 123)", () => {
   });
 });
 
-describe("normalizeOpenStatesBill — the resolution (SCR 45)", () => {
+describe("normalizeOpenStatesBill - the resolution (SCR 45)", () => {
   const item = normalizeOpenStatesBill(bill2, "us-ca");
 
   it("types a resolution from classification[]", () => {
@@ -139,7 +139,7 @@ describe("normalizeOpenStatesBill — the resolution (SCR 45)", () => {
   });
 });
 
-describe("mapStage — real action tags only, no guessing", () => {
+describe("mapStage - real action tags only, no guessing", () => {
   it("returns null for a record with no actions and no latest action", () => {
     expect(mapStage({ id: "x" })).toBeNull();
   });
@@ -154,7 +154,7 @@ describe("mapStage — real action tags only, no guessing", () => {
   });
 });
 
-describe("OpenStatesClient.fetchSince — hermetic, injected fetchImpl", () => {
+describe("OpenStatesClient.fetchSince - hermetic, injected fetchImpl", () => {
   it("normalizes the fixture and returns the max updated_at as the next cursor", async () => {
     const client = new OpenStatesClient({
       jurisdiction: "California",

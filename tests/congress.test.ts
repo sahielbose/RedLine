@@ -1,11 +1,11 @@
 /**
  * Hermetic tests for the Congress.gov v3 SourceClient (spec §5, DATA_SOURCES.md).
  *
- * (a) normalizeCongressBill(fixture) — the PURE map: identifier / type / dates /
+ * (a) normalizeCongressBill(fixture) - the PURE map: identifier / type / dates /
  *     stage / content_hash, with no fabrication (summary + comment_close_date
  *     null because the list endpoint doesn't carry them).
  * (b) CongressClient with an injected fetchImpl that replays the recorded
- *     fixture — fetchSince(null) returns normalized items and a non-null cursor,
+ *     fixture - fetchSince(null) returns normalized items and a non-null cursor,
  *     never touching the live API.
  *
  * No network, no API key, no DB.
@@ -56,7 +56,7 @@ function fixtureFetch(payload: unknown): typeof fetch {
     }) as unknown as Response) as unknown as typeof fetch;
 }
 
-describe("normalizeCongressBill — pure mapping", () => {
+describe("normalizeCongressBill - pure mapping", () => {
   const fixture = loadFixture();
   const hr = normalizeCongressBill(fixture.bills[0]);
   const sres = normalizeCongressBill(fixture.bills[1]);
@@ -136,7 +136,7 @@ describe("stageFromAction", () => {
   });
 });
 
-describe("CongressClient.fetchSince — hermetic (injected fetchImpl)", () => {
+describe("CongressClient.fetchSince - hermetic (injected fetchImpl)", () => {
   it("returns normalized items and a non-null cursor from the fixture", async () => {
     const fixture = loadFixture();
     const client = new CongressClient({
