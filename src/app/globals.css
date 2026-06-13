@@ -118,6 +118,9 @@ html,body{padding:0;margin:0;background:var(--canvas)}
 .addpf{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--accent);
   border:1px dashed var(--accent);background:var(--accent-bg);border-radius:8px;padding:8px 12px}
 .addpf:hover{background:#DFE9FF}
+.removepf{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--muted);
+  border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 11px;transition:all .15s}
+.removepf:hover{color:var(--critical);border-color:var(--critical-line);background:var(--critical-bg)}
 .main{padding:24px 26px 40px;animation:fadein .3s ease}
 @keyframes fadein{from{opacity:0}to{opacity:1}}
 .h-app{font-size:23px;font-weight:800;letter-spacing:-.3px}
@@ -431,6 +434,9 @@ html,body{padding:0;margin:0;background:var(--canvas)}
 .field input[type=number],.state-search{width:100%;border:1px solid var(--line2);border-radius:9px;padding:10px 12px;
   font-size:14px;outline:none;font-family:inherit;color:var(--ink);background:var(--surface)}
 .field input[type=number]:focus,.state-search:focus{border-color:var(--accent)}
+.ctx-input{width:100%;border:1px solid var(--line2);border-radius:9px;padding:11px 13px;font-size:14px;
+  outline:none;font-family:inherit;color:var(--ink);background:var(--surface);line-height:1.5;resize:vertical;min-height:74px}
+.ctx-input:focus{border-color:var(--accent)}
 .fed-fixed{color:var(--accent);background:var(--accent-bg);border-color:var(--accent);font-weight:700;cursor:default}
 .state-search{margin:0 0 10px}
 .statesgrid{max-height:172px;overflow-y:auto;gap:6px;padding:2px;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--inset)}

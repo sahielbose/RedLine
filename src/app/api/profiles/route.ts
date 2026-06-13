@@ -12,11 +12,26 @@
 import { NextResponse } from "next/server";
 import { buildProfile } from "@/pipeline/onboarding";
 import { getEmbedder } from "@/lib/embedder";
+import { getPool } from "@/lib/db";
 import { computeBoardForProfile, profileSummaryOf, type BoardProfile } from "@/app/lib/board";
 import { computeBoardForProfileLive, persistNewProfile } from "@/app/lib/live-board";
 import { AddBusinessSchema, formMeta, toOnboardingAnswers } from "@/app/lib/onboardingMap";
 
 export const dynamic = "force-dynamic";
+
+/** DELETE /api/profiles?id=… — soft-delete a custom profile (is_active=false) so
+ *  it stops showing up via the live board. Best-effort: a no-op when the profile
+ *  was never persisted to Postgres (client-only) or the DB is unreachable. */
+export async function DELETE(req: Request): Promise<Response> {
+  const id = new URL(req.url).searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+  try {
+    await getPool().query(`UPDATE org_profiles SET is_active = false WHERE id = $1`, [id]);
+  } catch {
+    /* DB absent or profile was client-only — the client already removed it. */
+  }
+  return NextResponse.json({ ok: true });
+}
 
 export async function POST(req: Request) {
   let body: unknown;

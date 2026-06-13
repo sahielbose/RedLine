@@ -176,6 +176,7 @@ export function AppView({ data }: { data: DashboardData }) {
   const [fStates, setFStates] = useState<string[]>(["US"]);
   const [fEmployees, setFEmployees] = useState("");
   const [fFoodRole, setFFoodRole] = useState("");
+  const [fContext, setFContext] = useState("");
   const [stateQuery, setStateQuery] = useState("");
 
   /* hydrate persisted custom profiles + marks AFTER mount (no SSR mismatch) */
@@ -429,6 +430,7 @@ export function AppView({ data }: { data: DashboardData }) {
           states: fStates.length ? fStates : ["US"],
           employees: fEmployees.trim() === "" ? undefined : Number(fEmployees),
           foodRole: fFoodRole || null,
+          context: fContext.trim() || undefined,
           attrs: {
             has_w2: Boolean(fAttrs.has_w2),
             contractors: Boolean(fAttrs.contractors),
@@ -459,6 +461,7 @@ export function AppView({ data }: { data: DashboardData }) {
         setFStates(["US"]);
         setFEmployees("");
         setFFoodRole("");
+        setFContext("");
         setStateQuery("");
         toast(
           json.live
@@ -473,7 +476,27 @@ export function AppView({ data }: { data: DashboardData }) {
     } finally {
       setCreating(false);
     }
-  }, [creating, fName, fTypes, fStates, fAttrs, fEmployees, fFoodRole, toast]);
+  }, [creating, fName, fTypes, fStates, fAttrs, fEmployees, fFoodRole, fContext, toast]);
+
+  /** Remove a custom (user-added) profile. Client state + localStorage update via
+   *  the persist effect; best-effort server soft-delete for DB-persisted ones. */
+  const removeProfile = useCallback(
+    (id: string) => {
+      const target = customProfiles.find((c) => c.id === id);
+      if (!target) return; // seeded profiles are not removable
+      if (typeof window !== "undefined" && !window.confirm(`Remove "${target.label}"? You can always add it again.`)) return;
+      setCustomProfiles((p) => p.filter((c) => c.id !== id));
+      setCustomBoards((b) => {
+        const next = { ...b };
+        delete next[id];
+        return next;
+      });
+      if (activeId === id) setActiveId(data.profiles[0]?.id ?? "");
+      void fetch(`/api/profiles?id=${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => {});
+      toast(`Removed ${target.label}`);
+    },
+    [customProfiles, activeId, data.profiles, toast],
+  );
 
   const openBand = open ? band(open.score) : null;
   const OpenBandIcon = openBand ? BAND_ICON[openBand.key] : null;
@@ -529,6 +552,11 @@ export function AppView({ data }: { data: DashboardData }) {
               })}
             </div>
             <button className="addpf" onClick={() => setModal(true)}><Plus size={14} /> Add your business</button>
+            {customProfiles.some((c) => c.id === activeId) && (
+              <button className="removepf" onClick={() => removeProfile(activeId)} title="Remove this business">
+                <X size={13} /> Remove
+              </button>
+            )}
           </div>
 
           {/* ───── OVERVIEW ───── */}
@@ -1144,6 +1172,25 @@ export function AppView({ data }: { data: DashboardData }) {
                     {fStates.filter((s) => s !== "US").length} state{fStates.filter((s) => s !== "US").length > 1 ? "s" : ""} selected
                   </div>
                 )}
+              </div>
+
+              <div className="field">
+                <label htmlFor="bizctx">
+                  In your own words — what helps, hurts, or blindsides you? <span className="opt-hint">optional, but this is the secret sauce</span>
+                </label>
+                <textarea
+                  id="bizctx"
+                  className="ctx-input"
+                  rows={3}
+                  maxLength={600}
+                  placeholder="e.g. We rely on auto-renewing annual contracts and store 5 years of customer analytics. Anything touching subscription cancellation rules, data-retention limits, or contractor classification is existential for us."
+                  value={fContext}
+                  onChange={(e) => setFContext(e.target.value)}
+                />
+                <div className="set-hint">
+                  Your words feed the scoring directly — RedLine weighs every bill against this, so the board is built around <b>you</b>.
+                  <span style={{ marginLeft: "auto" }}>{fContext.length}/600</span>
+                </div>
               </div>
 
               <button

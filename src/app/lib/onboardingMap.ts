@@ -19,6 +19,9 @@ export const AddBusinessSchema = z.object({
   employees: z.coerce.number().int().min(0).max(2_000_000).optional(),
   /** FSMA precision lever (spec §11 D): only set when the business handles food. */
   foodRole: z.enum(["make_pack_hold", "distribute", "serve_only"]).nullable().default(null),
+  /** Free-text "what's proprietary about us" — steers scoring (spec §10, Fed10
+   *  "upload what's proprietary"). Folded into concern_text. */
+  context: z.string().trim().max(600).optional(),
   attrs: z
     .object({
       has_w2: z.boolean().optional(),
@@ -56,6 +59,7 @@ export function toOnboardingAnswers(form: AddBusinessForm): OnboardingAnswers {
   return {
     jurisdictions: ["us", ...stateCodes],
     business_types: types,
+    context: form.context,
     attributes: {
       employees: form.employees,
       has_w2: Boolean(a.has_w2),

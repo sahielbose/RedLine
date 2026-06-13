@@ -12,7 +12,14 @@ export interface OnboardingAnswers {
   jurisdictions: string[]; // ['us','us-ca',...]
   business_types: BusinessType[]; // software | goods | food | hardware (toggles)
   attributes: ProfileAttributes;
+  /** Free-text "what's proprietary about us" — policy positions, focus areas,
+   *  what would help/hurt/blindside us. Folded into concern_text so it directly
+   *  steers Stage A (embedding) + Stage B (judge). The user's own words. */
+  context?: string;
 }
+
+/** Cap the free-text context so it can't blow the prompt; the user's own words. */
+const MAX_CONTEXT = 600;
 
 /** Human-readable list join: ["a","b","c"] → "a, b, and c". */
 function list(parts: string[]): string {
@@ -64,7 +71,10 @@ export function generateConcernText(answers: OnboardingAnswers): string {
     ".";
   const neg = negatives.length ? ` Does NOT ${list(negatives)}.` : "";
 
-  return `${head}${pos}${exposure}${neg}`.replace(/\s+/g, " ").trim();
+  const ctx = (answers.context ?? "").replace(/\s+/g, " ").trim().slice(0, MAX_CONTEXT);
+  const own = ctx ? ` In their own words: ${ctx}` : "";
+
+  return `${head}${pos}${exposure}${neg}${own}`.replace(/\s+/g, " ").trim();
 }
 
 function moduleExposure(types: BusinessType[]): string {

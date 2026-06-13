@@ -33,6 +33,29 @@ describe("onboarding → profile (spec §10)", () => {
     expect(text.toLowerCase()).toContain("food");
   });
 
+  it("folds the user's free-text company context into concern_text (personalization lever)", () => {
+    const text = generateConcernText({
+      jurisdictions: ["us"],
+      business_types: ["software"],
+      attributes: { sells_subscription: true },
+      context: "We depend on auto-renewing annual contracts and store 5 years of analytics.",
+    });
+    expect(text).toContain("In their own words:");
+    expect(text).toContain("auto-renewing annual contracts");
+  });
+
+  it("caps an overlong context so it cannot blow the prompt", () => {
+    const long = "x".repeat(5000);
+    const text = generateConcernText({
+      jurisdictions: ["us"],
+      business_types: ["software"],
+      attributes: {},
+      context: long,
+    });
+    // 600-char cap on the context portion (+ the surrounding template).
+    expect(text.length).toBeLessThan(900);
+  });
+
   it("builds a full profile with an embedding when an embedder is supplied", async () => {
     const embedder = getEmbedder();
     const profile = await buildProfile(
