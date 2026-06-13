@@ -102,6 +102,44 @@ function jurisdictionFromCode(jurisdictionCode: string): string {
   return jurisdictionCode.toLowerCase();
 }
 
+/** 2-letter postal code → the full jurisdiction name the v3 query expects. */
+const STATE_NAMES: Record<string, string> = {
+  AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California",
+  CO: "Colorado", CT: "Connecticut", DE: "Delaware", FL: "Florida", GA: "Georgia",
+  HI: "Hawaii", ID: "Idaho", IL: "Illinois", IN: "Indiana", IA: "Iowa",
+  KS: "Kansas", KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland",
+  MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi", MO: "Missouri",
+  MT: "Montana", NE: "Nebraska", NV: "Nevada", NH: "New Hampshire", NJ: "New Jersey",
+  NM: "New Mexico", NY: "New York", NC: "North Carolina", ND: "North Dakota", OH: "Ohio",
+  OK: "Oklahoma", OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina",
+  SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah", VT: "Vermont",
+  VA: "Virginia", WA: "Washington", WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming",
+  DC: "District of Columbia",
+};
+
+export interface OSState {
+  /** v3 jurisdiction name, e.g. "California". */
+  name: string;
+  /** Our normalized jurisdiction code, e.g. "us-ca". */
+  code: string;
+}
+
+/** Parse "CA,TX,NY" into resolved {name, code} states (unknown codes skipped). */
+export function parseStates(csv: string | undefined): OSState[] {
+  const codes = (csv ?? "CA")
+    .split(",")
+    .map((c) => c.trim().toUpperCase())
+    .filter((c) => STATE_NAMES[c]);
+  const seen = new Set<string>();
+  const out: OSState[] = [];
+  for (const c of codes) {
+    if (seen.has(c)) continue;
+    seen.add(c);
+    out.push({ name: STATE_NAMES[c], code: `us-${c.toLowerCase()}` });
+  }
+  return out.length ? out : [{ name: "California", code: "us-ca" }];
+}
+
 /**
  * Normalize a v3 `identifier` like 'AB 123' / 'S.B. 45' into a stable, mono-
  * friendly id scoped by jurisdiction: 'CA-AB-123'. We uppercase, strip dots,
@@ -217,29 +255,40 @@ export function normalizeOpenStatesBill(raw: OpenStatesBill, jurisdictionCode = 
 
 export interface OpenStatesClientDeps {
   apiKey?: string;
-  /** Full jurisdiction name as the v3 query expects, e.g. 'California'. */
+  /** Legacy single-state: full jurisdiction name, e.g. 'California'. */
   jurisdiction?: string;
-  /** Our normalized jurisdiction code stamped on every item, e.g. 'us-ca'. */
+  /** Legacy single-state: normalized jurisdiction code, e.g. 'us-ca'. */
   jurisdictionCode?: string;
+  /** Multi-state: the states to poll. Overrides env OPENSTATES_STATES. */
+  states?: OSState[];
   perPage?: number;
   fetchImpl?: typeof fetch;
 }
+
+/** Per-state page budget when polling MORE than one state, to stay under the
+ *  free-tier rate window across all states in one run. */
+const MULTI_STATE_PAGES = 2;
 
 export class OpenStatesClient implements SourceClient {
   readonly key = "openstates" as const;
 
   private readonly apiKey?: string;
-  private readonly jurisdiction: string;
-  private readonly jurisdictionCode: string;
+  private readonly states: OSState[];
   private readonly perPage: number;
   private readonly fetchImpl?: typeof fetch;
 
   constructor(deps: OpenStatesClientDeps = {}) {
     this.apiKey = deps.apiKey ?? process.env.OPENSTATES_API_KEY;
-    this.jurisdiction = deps.jurisdiction ?? "California";
-    this.jurisdictionCode = deps.jurisdictionCode ?? "us-ca";
     this.perPage = deps.perPage ?? DEFAULT_PER_PAGE;
     this.fetchImpl = deps.fetchImpl;
+    // Precedence: explicit legacy jurisdiction > explicit states > env > CA.
+    if (deps.jurisdiction) {
+      this.states = [{ name: deps.jurisdiction, code: deps.jurisdictionCode ?? "us-ca" }];
+    } else if (deps.states && deps.states.length) {
+      this.states = deps.states;
+    } else {
+      this.states = parseStates(process.env.OPENSTATES_STATES);
+    }
   }
 
   /** Default cold-start watermark: a bounded recent window, not all of history. */
@@ -248,72 +297,98 @@ export class OpenStatesClient implements SourceClient {
     return since.toISOString();
   }
 
-  /**
-   * Poll "changed since cursor" (ISO `updated_at` watermark), sort=updated_ASC,
-   * paginate, normalize. Returns the max `updated_at` seen as the next cursor
-   * (or the incoming cursor when nothing new arrived).
-   *
-   * Ascending (oldest-changed first) so that if a window exceeds MAX_PAGES, the
-   * UNFETCHED tail is NEWER than the advanced cursor and the next poll picks it
-   * up — descending + max-cursor would strand the older tail (a silent recall
-   * hole). Boundary re-fetch at the watermark is dedup-safe (content_hash).
-   */
-  async fetchSince(cursor: string | null): Promise<{ items: NormalizedItem[]; cursor: string }> {
-    // v3 wants `updated_since` as YYYY-MM-DDTHH:MM:SS — NO milliseconds and NO 'Z'
-    // (both 400 the gateway). Normalize whatever the cursor carries to 19 chars.
-    const raw = cursor ?? this.coldStartCursor();
+  /** v3 wants YYYY-MM-DDTHH:MM:SS — no ms, no 'Z' (both 400 the gateway). */
+  private normSince(raw: string): string {
     const parsed = new Date(raw);
-    const updatedSince = Number.isNaN(parsed.getTime())
-      ? raw.slice(0, 19)
-      : parsed.toISOString().slice(0, 19);
-    const headers: Record<string, string> = {};
-    // The header is the documented auth; ?apikey= also works. Omit when absent
-    // (tests inject fetchImpl and never reach the network).
-    if (this.apiKey) headers["X-API-Key"] = this.apiKey;
+    return Number.isNaN(parsed.getTime()) ? raw.slice(0, 19) : parsed.toISOString().slice(0, 19);
+  }
 
+  /** Poll one state "changed since" ascending, paginated; returns items + the max
+   *  updated_at seen. Keeps a good partial on a rate-limit error after page 1. */
+  private async fetchOneState(
+    state: OSState,
+    since: string,
+    maxPages: number,
+    headers: Record<string, string>,
+  ): Promise<{ items: NormalizedItem[]; maxUpdated: string }> {
     const items: NormalizedItem[] = [];
-    let maxUpdated = updatedSince;
-
-    for (let page = 1; page <= MAX_PAGES; page++) {
+    let maxUpdated = since;
+    for (let page = 1; page <= maxPages; page++) {
       let data: OpenStatesPage;
       try {
         data = await fetchJson<OpenStatesPage>(BASE_URL, {
           headers,
           query: {
-            jurisdiction: this.jurisdiction,
+            jurisdiction: state.name,
             sort: "updated_asc",
-            // The v3 gateway requires REPEATED include params (include=a&include=b);
-            // it 422s on comma/space-joined values. buildUrl expands the array.
+            // v3 requires REPEATED include params; buildUrl expands the array.
             include: ["abstracts", "sponsorships", "actions"],
-            updated_since: updatedSince,
+            updated_since: since,
             page,
             per_page: this.perPage,
           },
           fetchImpl: this.fetchImpl,
         });
       } catch (err) {
-        // Open States' free tier is aggressively rate-limited. If we've already
-        // collected real items, keep them and advance the cursor by what we saw
-        // rather than throwing away a good partial poll; the ascending sort means
-        // the next run resumes at the unfetched (newer) tail. Only a first-page
-        // failure (zero items) is a real error worth surfacing.
         if (items.length > 0) break;
         throw err;
       }
-
       const results = data.results ?? [];
       for (const bill of results) {
-        const normalized = normalizeOpenStatesBill(bill, this.jurisdictionCode);
-        items.push(normalized);
+        items.push(normalizeOpenStatesBill(bill, state.code));
         const u = bill.updated_at ?? null;
         if (u && u > maxUpdated) maxUpdated = u;
       }
-
       const pg = data.pagination ?? {};
       const maxPage = pg.max_page ?? page;
       if (results.length === 0 || page >= maxPage) break;
     }
+    return { items, maxUpdated };
+  }
 
-    return { items, cursor: maxUpdated };
+  /**
+   * Poll "changed since cursor". Single state: cursor is a plain ISO watermark
+   * string (legacy behavior, unchanged). Multiple states: cursor is a JSON map
+   * { 'us-ca': watermark, ... } and the page budget is split across states.
+   *
+   * Ascending sort means an over-budget window's unfetched tail is NEWER than the
+   * advanced cursor, so the next poll resumes it (no silent recall hole);
+   * boundary re-fetch is dedup-safe (content_hash).
+   */
+  async fetchSince(cursor: string | null): Promise<{ items: NormalizedItem[]; cursor: string }> {
+    const headers: Record<string, string> = {};
+    if (this.apiKey) headers["X-API-Key"] = this.apiKey;
+
+    // ── Single state: identical to the original (plain string cursor) ──────────
+    if (this.states.length === 1) {
+      const since = this.normSince(cursor ?? this.coldStartCursor());
+      const { items, maxUpdated } = await this.fetchOneState(this.states[0], since, MAX_PAGES, headers);
+      return { items, cursor: maxUpdated };
+    }
+
+    // ── Multiple states: per-state watermarks in a JSON cursor map ─────────────
+    let map: Record<string, string> = {};
+    if (cursor) {
+      try {
+        const p = JSON.parse(cursor);
+        if (p && typeof p === "object") map = p as Record<string, string>;
+      } catch {
+        /* legacy string cursor → treat as cold start for every state */
+      }
+    }
+    const allItems: NormalizedItem[] = [];
+    const nextMap: Record<string, string> = { ...map };
+    for (const st of this.states) {
+      const since = this.normSince(map[st.code] ?? this.coldStartCursor());
+      try {
+        const { items, maxUpdated } = await this.fetchOneState(st, since, MULTI_STATE_PAGES, headers);
+        allItems.push(...items);
+        nextMap[st.code] = maxUpdated;
+      } catch {
+        // Rate-limited or per-state error: keep prior watermark, try again next run.
+        nextMap[st.code] = map[st.code] ?? since;
+      }
+    }
+    return { items: allItems, cursor: JSON.stringify(nextMap) };
   }
 }

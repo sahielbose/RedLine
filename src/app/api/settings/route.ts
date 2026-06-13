@@ -22,6 +22,9 @@ const BodySchema = z.object({
   anthropicApiKey: z.string().trim().optional(),
   anthropicModel: z.string().trim().optional(),
   llmProvider: z.enum(["local", "anthropic", "ollama"]).optional(),
+  digestCadence: z.enum(["daily", "weekly"]).optional(),
+  commentDeadlineAlerts: z.boolean().optional(),
+  digestRecipient: z.string().trim().max(200).optional(),
 });
 
 export async function POST(req: NextRequest): Promise<Response> {

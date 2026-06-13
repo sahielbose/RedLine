@@ -22,6 +22,7 @@ interface SafeSettings {
   anthropicKeyTail: string | null;
   keySource: "settings" | "env" | "none";
   status: { congressKey: boolean; openStatesKey: boolean; database: boolean; smtp: boolean };
+  alerts: { cadence: "daily" | "weekly"; commentDeadlineAlerts: boolean; recipient: string };
   updatedAt: string | null;
 }
 
@@ -46,6 +47,11 @@ export function SettingsPanel({ onToast }: { onToast?: (msg: string) => void }) 
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [test, setTest] = useState<TestResult | null>(null);
+  // Alerts & delivery
+  const [cadence, setCadence] = useState<"daily" | "weekly">("daily");
+  const [deadlineAlerts, setDeadlineAlerts] = useState(true);
+  const [recipient, setRecipient] = useState("");
+  const [savingAlerts, setSavingAlerts] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -54,10 +60,32 @@ export function SettingsPanel({ onToast }: { onToast?: (msg: string) => void }) 
       setSettings(s);
       setModel(s.model);
       setProvider(s.provider);
+      if (s.alerts) {
+        setCadence(s.alerts.cadence);
+        setDeadlineAlerts(s.alerts.commentDeadlineAlerts);
+        setRecipient(s.alerts.recipient);
+      }
     } catch {
       /* leave defaults */
     }
   }, []);
+
+  const saveAlerts = useCallback(async () => {
+    setSavingAlerts(true);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ digestCadence: cadence, commentDeadlineAlerts: deadlineAlerts, digestRecipient: recipient.trim() }),
+      });
+      setSettings(await res.json());
+      onToast?.("Alert preferences saved");
+    } catch {
+      onToast?.("Could not save alert preferences");
+    } finally {
+      setSavingAlerts(false);
+    }
+  }, [cadence, deadlineAlerts, recipient, onToast]);
 
   useEffect(() => {
     void load();
@@ -210,6 +238,37 @@ export function SettingsPanel({ onToast }: { onToast?: (msg: string) => void }) 
             </span>
           </div>
         )}
+      </div>
+
+      {/* ── Alerts & delivery ────────────────────────────────────────── */}
+      <div className="set-card">
+        <div className="set-h"><Mail size={15} /> Alerts &amp; delivery</div>
+        <div className="field">
+          <label>Digest frequency</label>
+          <div className="seg">
+            <button className={cadence === "daily" ? "on" : ""} onClick={() => setCadence("daily")}>Daily</button>
+            <button className={cadence === "weekly" ? "on" : ""} onClick={() => setCadence("weekly")}>Weekly</button>
+          </div>
+          <div className="set-hint">How often the digest goes out. It sends only memos you approved in the Alerts tab (the approval gate) — never auto-sends.</div>
+        </div>
+        <div className="field">
+          <label>Comment-deadline alerts</label>
+          <div className="seg">
+            <button className={deadlineAlerts ? "on" : ""} onClick={() => setDeadlineAlerts(true)}>On</button>
+            <button className={!deadlineAlerts ? "on" : ""} onClick={() => setDeadlineAlerts(false)}>Off</button>
+          </div>
+          <div className="set-hint">Surface items whose public-comment window is closing, linked to the official portal.</div>
+        </div>
+        <div className="field">
+          <label htmlFor="digest-to">Digest recipient</label>
+          <input id="digest-to" type="text" placeholder="you@company.com" value={recipient} onChange={(e) => setRecipient(e.target.value)} autoComplete="off" />
+          <div className="set-hint">Where the digest is sent. Uses SMTP when configured, otherwise logs to the server console.</div>
+        </div>
+        <div className="set-actions">
+          <button className="btn btn-blue" onClick={saveAlerts} disabled={savingAlerts}>
+            {savingAlerts ? <Loader2 size={14} className="spin" /> : <Check size={14} />} Save preferences
+          </button>
+        </div>
       </div>
 
       {/* ── Data sources status (read-only) ──────────────────────────── */}

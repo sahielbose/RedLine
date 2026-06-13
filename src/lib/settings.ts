@@ -18,11 +18,22 @@ import { env } from "@/lib/env";
 
 export type LLMProvider = "local" | "anthropic" | "ollama";
 
+export type DigestCadence = "daily" | "weekly";
+
 export interface StoredSettings {
   llmProvider?: LLMProvider;
   anthropicApiKey?: string;
   anthropicModel?: string;
+  digestCadence?: DigestCadence;
+  commentDeadlineAlerts?: boolean;
+  digestRecipient?: string;
   updatedAt?: string;
+}
+
+export interface AlertConfig {
+  cadence: DigestCadence;
+  commentDeadlineAlerts: boolean;
+  recipient: string;
 }
 
 export interface ResolvedLLMConfig {
@@ -49,6 +60,8 @@ export interface SafeSettings {
     database: boolean;
     smtp: boolean;
   };
+  /** Delivery + alert preferences. */
+  alerts: AlertConfig;
   updatedAt: string | null;
 }
 
@@ -81,6 +94,16 @@ export function saveStored(patch: Partial<StoredSettings>): StoredSettings {
   fs.writeFileSync(SETTINGS_PATH, JSON.stringify(next, null, 2), { mode: 0o600 });
   cache = next;
   return next;
+}
+
+/** Delivery + alert preferences (stored, with safe defaults). */
+export function getAlertConfig(): AlertConfig {
+  const s = loadStored();
+  return {
+    cadence: s.digestCadence ?? "daily",
+    commentDeadlineAlerts: s.commentDeadlineAlerts ?? true,
+    recipient: s.digestRecipient ?? "",
+  };
 }
 
 export function resolveLLMConfig(): ResolvedLLMConfig {
@@ -124,6 +147,7 @@ export function getSafeSettings(): SafeSettings {
       database: Boolean(e.DATABASE_URL),
       smtp: Boolean(e.SMTP_URL),
     },
+    alerts: getAlertConfig(),
     updatedAt: s.updatedAt ?? null,
   };
 }

@@ -13,6 +13,7 @@ import { z } from "zod";
 import { buildDigestHtml, type DigestItem } from "@/pipeline/digest";
 import { getMailer } from "@/lib/mailer";
 import { env } from "@/lib/env";
+import { getAlertConfig } from "@/lib/settings";
 
 const Body = z.object({
   orgLabel: z.string().trim().min(1).max(120),
@@ -61,11 +62,14 @@ export async function POST(req: Request) {
   const html = buildDigestHtml({ orgLabel, periodLabel, items: items as DigestItem[] });
 
   const transport = env().SMTP_URL ? "smtp" : "console";
+  // Recipient precedence: explicit `to` > the configured digest recipient > a
+  // clearly-placeholder fallback (so a real SMTP run never silently emails a stub).
+  const recipient = to || getAlertConfig().recipient || "owner@example.com";
   await getMailer().send({
-    to: to ?? "owner@example.com",
+    to: recipient,
     subject: `RedLine — ${periodLabel} (${orgLabel})`,
     html,
   });
 
-  return NextResponse.json({ ok: true, transport, itemCount: items.length, bytes: html.length });
+  return NextResponse.json({ ok: true, transport, itemCount: items.length, bytes: html.length, to: recipient });
 }

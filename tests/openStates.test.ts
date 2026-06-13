@@ -17,6 +17,7 @@ import {
   normalizeIdentifier,
   normalizeOpenStatesBill,
   mapStage,
+  parseStates,
   type OpenStatesBill,
 } from "@/sources/openStates";
 import { contentHashFor } from "@/lib/hash";
@@ -180,5 +181,40 @@ describe("OpenStatesClient.fetchSince — hermetic, injected fetchImpl", () => {
 
   it("exposes the SourceClient key 'openstates'", () => {
     expect(new OpenStatesClient().key).toBe("openstates");
+  });
+
+  it("multi-state: tags items per state and returns a JSON cursor map", async () => {
+    const fetchImpl = (async (url: string | URL) => {
+      const j = new URL(String(url)).searchParams.get("jurisdiction") ?? "";
+      return {
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        headers: new Headers(),
+        json: async () => ({
+          results: [{ id: `${j}-1`, identifier: "HB 1", title: `${j} bill`, updated_at: "2026-02-01T00:00:00Z" }],
+          pagination: { max_page: 1, page: 1 },
+        }),
+      } as unknown as Response;
+    }) as unknown as typeof fetch;
+    const client = new OpenStatesClient({
+      states: [{ name: "Texas", code: "us-tx" }, { name: "New York", code: "us-ny" }],
+      fetchImpl,
+    });
+    const { items, cursor } = await client.fetchSince(null);
+    expect(items.map((i) => i.jurisdiction).sort()).toEqual(["us-ny", "us-tx"]);
+    expect(items.map((i) => i.identifier).sort()).toEqual(["NY-HB-1", "TX-HB-1"]);
+    // Cursor is a JSON map with a per-state watermark for each polled state.
+    const map = JSON.parse(cursor) as Record<string, string>;
+    expect(Object.keys(map).sort()).toEqual(["us-ny", "us-tx"]);
+    expect(typeof map["us-tx"]).toBe("string");
+  });
+});
+
+describe("parseStates", () => {
+  it("parses codes, dedups, and falls back to CA", () => {
+    expect(parseStates("TX, ny ,TX").map((s) => s.code)).toEqual(["us-tx", "us-ny"]);
+    expect(parseStates(undefined).map((s) => s.code)).toEqual(["us-ca"]);
+    expect(parseStates("ZZ").map((s) => s.code)).toEqual(["us-ca"]); // unknown code → fallback
   });
 });

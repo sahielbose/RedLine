@@ -21,6 +21,10 @@ const EnvSchema = z.object({
   CONGRESS_API_KEY: z.string().optional(),
   REGULATIONS_API_KEY: z.string().optional(),
   OPENSTATES_API_KEY: z.string().optional(),
+  // Comma-separated 2-letter state codes the Open States client ingests, e.g.
+  // "CA,TX,NY". Default CA only (preserves single-state behavior); add states to
+  // light up more of the map. Free-tier rate limits keep this modest.
+  OPENSTATES_STATES: z.string().default("CA"),
 
   SMTP_URL: z.string().optional(),
   MAIL_FROM: z.string().default("redline@example.com"),
