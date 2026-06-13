@@ -20,6 +20,8 @@ export interface USMapProps {
   map: Record<string, StateThreat>;
   selected?: string | null;
   onSelect?: (state: string | null) => void;
+  /** Reports the hovered state (uppercase postal) or null on leave. */
+  onHover?: (state: string | null) => void;
   /** Home-state postals (uppercase), ringed on the map. */
   home?: string[];
   /** State of the item the floating cards are showing (uppercase) - soft accent ring. */
@@ -27,7 +29,7 @@ export interface USMapProps {
   compact?: boolean;
 }
 
-export function USMap({ map, selected = null, onSelect, home = [], active = null, compact }: USMapProps) {
+export function USMap({ map, selected = null, onSelect, onHover, home = [], active = null, compact }: USMapProps) {
   const shadowId = useId();
 
   const threatOf = (postal: string) => map[postal.toLowerCase()];
@@ -60,6 +62,7 @@ export function USMap({ map, selected = null, onSelect, home = [], active = null
       role="group"
       aria-label="US map - state threat status. Click a state to focus it plus federal items."
       preserveAspectRatio="xMidYMid meet"
+      onMouseLeave={() => onHover && onHover(null)}
     >
       <defs>
         <filter id={shadowId} x="-4%" y="-4%" width="108%" height="112%">
@@ -85,6 +88,8 @@ export function USMap({ map, selected = null, onSelect, home = [], active = null
               (info ? `, ${info.count} state item${info.count > 1 ? "s" : ""}` : ", no state items yet")
             }
             onClick={() => onSelect && onSelect(selected === s.postal ? null : s.postal)}
+            onMouseEnter={() => onHover && onHover(s.postal)}
+            onFocus={() => onHover && onHover(s.postal)}
             onKeyDown={(e) => {
               if (onSelect && (e.key === "Enter" || e.key === " ")) {
                 e.preventDefault();

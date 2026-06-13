@@ -8,7 +8,7 @@
   --surface:#FFFFFF; --chrome:#ECEAE6; --inset:#F4F1EC; --inset2:#EFEBE4;
   --line:#E7E2DB; --line2:#D8D1C6;
   --ink:#15203B; --ink-soft:#3C4660; --muted:#8A8F99;
-  --map-empty:#DCE3EE; --map-mid:#9AA9C2; --map-hot:#15203B;
+  --map-empty:#DCE3EE; --map-mid:#9AA9C2; --map-hot:#15203B; --map-hover:#2B4C84;
   --accent:#2F6BFF; --accent-bg:#EAF0FF;
   --critical:#C2183A; --critical-bg:#FBE9EC; --critical-line:#E8BFC9;
   --high:#B45A0E; --high-bg:#FBF0E2; --high-line:#EAD2AE;
@@ -191,6 +191,8 @@ html,body{padding:0;margin:0;background:var(--canvas)}
 .cbody{flex:1;min-width:0}
 .ctitle{font-size:15px;font-weight:700;line-height:1.32}
 .cmeta{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-top:9px}
+.csummary{margin-top:6px;font-size:12.5px;color:var(--muted);line-height:1.5;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .why{margin-top:10px;font-size:13px;color:var(--ink-soft);line-height:1.5;border-left:2px solid var(--line2);padding-left:11px}
 .cright{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 .trackbtn{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--ink-soft);
@@ -301,12 +303,13 @@ html,body{padding:0;margin:0;background:var(--canvas)}
 .usmap.compact{max-width:460px;margin:14px auto 6px}
 .usmap-shadow{fill:#F2EDE4;pointer-events:none}
 .usmap .st{fill:var(--map-empty);stroke:#FFFFFF;stroke-width:.75;cursor:pointer;
-  transition:fill .25s ease,opacity .25s ease}
-.usmap .st:hover{fill:#C8D3E6}
+  transition:fill .15s ease,opacity .15s ease}
+/* hover/highlight = a clear dark blue on every state, whatever its threat shade */
+.usmap .st:hover{fill:var(--map-hover)}
 .usmap .st.mid{fill:var(--map-mid)}
-.usmap .st.mid:hover{fill:#8190AC}
+.usmap .st.mid:hover{fill:var(--map-hover)}
 .usmap .st.hot{fill:var(--map-hot)}
-.usmap .st.hot:hover{fill:#243154}
+.usmap .st.hot:hover{fill:#0E1830}
 .usmap .st:focus-visible{outline:none;stroke:var(--accent);stroke-width:2.5}
 .usmap .st-ring{fill:none;pointer-events:none}
 .usmap .st-ring.home{stroke:var(--critical);stroke-width:1.6;stroke-dasharray:5 4;opacity:.85}
@@ -410,6 +413,9 @@ html,body{padding:0;margin:0;background:var(--canvas)}
 /* ── Overview: stationary Spotlight panel + state-focus affordances ───────── */
 .map-fed{font-size:11.5px;color:var(--muted)}
 .map-hint{font-size:11.5px;color:var(--muted);margin-left:auto}
+.map-hover-info{font-size:11.5px;color:var(--ink-soft);margin-left:auto;max-width:60%;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.map-hover-info b{color:var(--map-hover);font-weight:700}
 .clearfocus{display:inline-flex;align-items:center;gap:5px;margin-left:auto;font-size:11.5px;font-weight:600;
   color:var(--accent);background:transparent;border:1px solid var(--line);border-radius:7px;padding:4px 9px;cursor:pointer;
   transition:border-color .12s,background .12s}

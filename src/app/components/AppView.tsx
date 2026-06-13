@@ -77,6 +77,31 @@ function activityDate(iso: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+/** A plain-English summary of the law for EVERY item: the model/source summary
+ *  when present, otherwise an honest restatement of the item's own metadata (no
+ *  fabrication — never invents what the law does). Guarantees the brief is never
+ *  blank even for sources (e.g. the Congress list endpoint) that ship no summary. */
+function plainEnglishSummary(c: SurfacedCard): string {
+  const fromMemo = c.memo?.what_it_does?.replace(/^per the source:\s*/i, "").trim();
+  if (fromMemo) return fromMemo;
+  if (c.summary && c.summary.trim()) return c.summary.trim();
+  const kind =
+    c.source === "congress"
+      ? "federal bill"
+      : c.source === "federal_register"
+        ? "federal rule or notice"
+        : c.source === "openstates"
+          ? "state bill"
+          : "regulatory item";
+  const origin = c.agency
+    ? `issued by ${c.agency}`
+    : c.postal
+      ? `before the ${POSTAL_TO_NAME[c.postal] ?? c.jurisdiction} legislature`
+      : "in the U.S. Congress";
+  const status = c.status ? ` Current status: ${c.status}.` : "";
+  return `${c.identifier ? c.identifier + " is a" : "A"} ${kind} ${origin}.${status} The full, authoritative text is on the official source linked below.`;
+}
+
 /** Who is moving this item — the honest "intel" line (issuing body / chamber),
  *  derived from real fields. No vote predictions, no invented committee math. */
 function issuingBody(c: SurfacedCard): string {
@@ -171,6 +196,7 @@ export function AppView({ data }: { data: DashboardData }) {
   const [marks, setMarks] = useState<Marks>({});
   const [showLow, setShowLow] = useState(false);
   const [selState, setSelState] = useState<string | null>(null);
+  const [hoverState, setHoverState] = useState<string | null>(null);
   const [spotId, setSpotId] = useState<string | null>(null);
   const [cycleIdx, setCycleIdx] = useState(0);
   const [autoCycle, setAutoCycle] = useState(true);
@@ -733,12 +759,24 @@ export function AppView({ data }: { data: DashboardData }) {
                   <div className="map-top">
                     <span className="pill"><MapPin size={11} /> {selState ? `Focused: ${stateName(selState)} + Federal` : "All jurisdictions"}</span>
                     <span className="map-fed">Federal: {federalCount} flagged</span>
-                    {selState ? (
+                    {hoverState ? (
+                      (() => {
+                        const h = board.mapByState[hoverState.toLowerCase()];
+                        return (
+                          <span className="map-hover-info">
+                            <b>{stateName(hoverState)}</b>
+                            {h
+                              ? ` · ${h.count} threat${h.count > 1 ? "s" : ""} · top: ${h.top}`
+                              : " · no state items yet"}
+                          </span>
+                        );
+                      })()
+                    ) : selState ? (
                       <button className="clearfocus" onClick={() => { setSelState(null); setSpotId(null); }} title="Show all jurisdictions again">
                         Clear focus <X size={12} />
                       </button>
                     ) : (
-                      <span className="map-hint">Click a state to focus</span>
+                      <span className="map-hint">Hover a state to preview · click to focus</span>
                     )}
                   </div>
                   <div className="mapstage">
@@ -747,6 +785,7 @@ export function AppView({ data }: { data: DashboardData }) {
                       selected={selState}
                       active={activeItem?.postal ? activeItem.postal.toUpperCase() : null}
                       onSelect={(s) => { setSelState(s); setSpotId(null); setCycleIdx(0); }}
+                      onHover={setHoverState}
                       home={homeStates(profile.jurisdictions)}
                     />
                     <MapCards
@@ -885,6 +924,10 @@ export function AppView({ data }: { data: DashboardData }) {
                       </div>
                       <div className="cbody">
                         <div className="ctitle">{r.title}</div>
+                        {(() => {
+                          const sum = r.memo?.what_it_does?.replace(/^per the source:\s*/i, "").trim() || r.summary?.trim();
+                          return sum ? <div className="csummary">{sum}</div> : null;
+                        })()}
                         <div className="cmeta">
                           <span className="chip id">{r.identifier}</span>
                           <span className="chip">{displaySource(r)}</span>
@@ -1042,7 +1085,7 @@ export function AppView({ data }: { data: DashboardData }) {
                 {/* PLAIN ENGLISH — what the rule actually requires, in reader terms */}
                 <div className="memo">
                   <h4><BookOpen size={12} /> Plain English</h4>
-                  <p>{open.memo?.what_it_does ?? open.summary}</p>
+                  <p>{plainEnglishSummary(open)}</p>
                 </div>
 
                 {/* WHY THIS MATTERS — the per-you analysis, with the risk pill */}
