@@ -68,17 +68,6 @@ export function homeStates(jurisdictions: string[]): string[] {
     .map((j) => j.replace(/^us-/, "").toUpperCase());
 }
 
-/** Tile-grid US map: each state = one tile, roughly geographic (col,row). */
-export const TILES: Record<string, [number, number]> = {
-  AK: [0, 0], ME: [11, 0],
-  WA: [1, 1], ID: [2, 1], MT: [3, 1], ND: [4, 1], MN: [5, 1], WI: [6, 1], MI: [8, 1], NY: [9, 1], VT: [10, 1], NH: [11, 1],
-  OR: [1, 2], NV: [2, 2], WY: [3, 2], SD: [4, 2], IA: [5, 2], IL: [6, 2], IN: [7, 2], OH: [8, 2], PA: [9, 2], NJ: [10, 2], MA: [11, 2],
-  CA: [1, 3], UT: [2, 3], CO: [3, 3], NE: [4, 3], MO: [5, 3], KY: [6, 3], WV: [7, 3], VA: [8, 3], MD: [9, 3], DE: [10, 3], CT: [11, 3],
-  AZ: [2, 4], NM: [3, 4], KS: [4, 4], AR: [5, 4], TN: [6, 4], NC: [7, 4], SC: [8, 4], DC: [9, 4], RI: [11, 4],
-  OK: [4, 5], LA: [5, 5], MS: [6, 5], AL: [7, 5], GA: [8, 5],
-  HI: [0, 6], TX: [4, 6], FL: [9, 6],
-};
-
 /** Onboarding-modal option lists (mirror spec §10's question→field map). */
 export const BIZ_TYPES = [
   { id: "software", label: "Software / SaaS" },

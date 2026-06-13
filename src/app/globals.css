@@ -455,6 +455,14 @@ html,body{padding:0;margin:0;background:var(--canvas)}
 .source-link:hover{text-decoration:underline}
 
 /* ── Memo slide-over: Fed10-style structured AI brief ─────────────────────── */
+/* subtle staggered reveal of brief sections as the panel opens (reduced-motion
+   is killed globally by .rx * above) */
+.pbody .memo{animation:rise .3s ease backwards}
+.pbody .memo:nth-child(2){animation-delay:.04s}
+.pbody .memo:nth-child(3){animation-delay:.08s}
+.pbody .memo:nth-child(4){animation-delay:.12s}
+.pbody .memo:nth-child(5){animation-delay:.16s}
+.pbody .memo:nth-child(n+6){animation-delay:.2s}
 .memo h4{display:flex;align-items:center;gap:6px}
 .memo h4 svg{color:var(--muted)}
 .risk-pill{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-size:9px;letter-spacing:1px;
@@ -467,6 +475,26 @@ html,body{padding:0;margin:0;background:var(--canvas)}
 .brief-tags{display:flex;flex-wrap:wrap;gap:6px}
 .brief-issuer{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.4}
 .brief-issuer span{color:var(--ink-soft)}
+.fb-block{background:var(--inset);border:1px solid var(--line);border-radius:11px;padding:13px 14px}
+.fb-row{display:flex;gap:8px;margin-top:2px}
+.fb-btn{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--ink-soft);
+  border:1px solid var(--line2);background:var(--surface);border-radius:8px;padding:8px 13px;transition:all .15s}
+.fb-btn:hover{border-color:var(--accent)}
+.fb-btn.up{color:var(--safe);background:var(--safe-bg);border-color:var(--safe-line)}
+.fb-btn.down{color:var(--critical);background:var(--critical-bg);border-color:var(--critical-line)}
+.fb-hint{font-size:11px;color:var(--muted);margin-top:8px}
+.draft-row{margin-top:11px}
+.draft-btn{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:650;color:var(--accent);
+  border:1px dashed var(--accent);background:var(--accent-bg);border-radius:8px;padding:8px 13px;transition:background .15s}
+.draft-btn:hover:not(:disabled){background:#DFE9FF}
+.draft-btn:disabled{opacity:.6;cursor:wait}
+.draft-box{margin-top:12px;border:1px solid var(--line);border-radius:11px;background:var(--inset);padding:12px 13px;animation:cardin .25s ease}
+.draft-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.draft-notice{font-size:11.5px;color:var(--high);background:var(--high-bg);border:1px solid var(--high-line);
+  border-radius:7px;padding:7px 10px;margin-bottom:9px;line-height:1.45}
+.draft-text{width:100%;border:1px solid var(--line2);border-radius:9px;padding:11px 12px;font-size:12.5px;
+  line-height:1.6;color:var(--ink);background:var(--surface);font-family:var(--sans);resize:vertical;outline:none}
+.draft-text:focus{border-color:var(--accent)}
 @media (max-width:520px){ .brief-grid{grid-template-columns:1fr} }
 
 /* ── Activity feed (live stream of latest actions) ───────────────────────── */

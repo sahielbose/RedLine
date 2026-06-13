@@ -16,7 +16,7 @@ import Link from "next/link";
 import {
   AlertTriangle, ArrowRight, Bookmark, BookmarkCheck, BookOpen, Building2, CheckCircle2,
   ChevronDown, Circle, ClipboardCheck, Clock, Cpu, ExternalLink, Eye, History, Mail, MapPin,
-  Plus, Quote, Scale, Search, ShieldAlert, ShoppingBag, Sparkles, UtensilsCrossed, X,
+  Copy, PenLine, Plus, Quote, Scale, Search, ShieldAlert, ShoppingBag, Sparkles, ThumbsDown, ThumbsUp, UtensilsCrossed, X,
   type LucideIcon,
 } from "lucide-react";
 import type { BoardData, DashboardData, ProfileSummary, SurfacedCard } from "@/app/lib/board";
@@ -87,12 +87,14 @@ function issuingBody(c: SurfacedCard): string {
   return displaySource(c);
 }
 
+type FeedbackLabel = "relevant" | "not_relevant";
 interface ProfileMarks {
   tracked: string[];
   approved: string[];
+  feedback?: Record<string, FeedbackLabel>;
 }
 type Marks = Record<string, ProfileMarks>;
-const EMPTY_MARKS: ProfileMarks = { tracked: [], approved: [] };
+const EMPTY_MARKS: ProfileMarks = { tracked: [], approved: [], feedback: {} };
 
 /** One row of the "filtered out" expander - engine-judged rejects, merged from
  *  sub-3 surfaced items and Stage-0/A filtered items. */
@@ -239,6 +241,7 @@ export function AppView({ data }: { data: DashboardData }) {
   const profileMarks = marks[activeId] ?? EMPTY_MARKS;
   const tracked = useMemo(() => new Set(profileMarks.tracked), [profileMarks]);
   const approved = useMemo(() => new Set(profileMarks.approved), [profileMarks]);
+  const feedback = profileMarks.feedback ?? {};
 
   const toggleMark = useCallback(
     (kind: "tracked" | "approved", id: string, msg?: string) => {
@@ -249,6 +252,38 @@ export function AppView({ data }: { data: DashboardData }) {
         return { ...prev, [activeId]: { ...cur, [kind]: next } };
       });
       if (!has && msg) toast(msg);
+      // Best-effort durable sync: persists when this profile + item live in the DB
+      // (the approval gate / tracked_items), no-op otherwise (demo/custom). Optimistic
+      // UI above is the source of truth for the view.
+      const url = kind === "approved" ? "/api/memos/approve" : "/api/track";
+      void fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profileId: activeId, itemId: id, on: !has }),
+      }).catch(() => {});
+    },
+    [marks, activeId, toast],
+  );
+
+  /** 👍/👎 relevance feedback (spec §8): records a label that feeds the eval set.
+   *  Optimistic localStorage + best-effort durable write to relevance_feedback. */
+  const sendFeedback = useCallback(
+    (id: string, label: FeedbackLabel) => {
+      const cur = (marks[activeId] ?? EMPTY_MARKS).feedback ?? {};
+      const isSame = cur[id] === label;
+      setMarks((prev) => {
+        const m = prev[activeId] ?? EMPTY_MARKS;
+        const fb = { ...(m.feedback ?? {}) };
+        if (isSame) delete fb[id];
+        else fb[id] = label;
+        return { ...prev, [activeId]: { ...m, feedback: fb } };
+      });
+      if (!isSame) toast(label === "relevant" ? "Thanks — marked relevant" : "Thanks — marked not relevant");
+      void fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profileId: activeId, itemId: id, label, on: !isSame }),
+      }).catch(() => {});
     },
     [marks, activeId, toast],
   );
@@ -342,6 +377,37 @@ export function AppView({ data }: { data: DashboardData }) {
     () => (openId ? board.surfaced.find((i) => i.id === openId) ?? null : null),
     [openId, board],
   );
+
+  /* comment-letter drafter (Fed10 "draft your position paper"; draft-gated) */
+  const [draft, setDraft] = useState<{ itemId: string; text: string; engine: string; notice?: string } | null>(null);
+  const [drafting, setDrafting] = useState(false);
+  useEffect(() => { setDraft(null); }, [openId]);
+  const makeDraft = useCallback(async () => {
+    if (!open || drafting) return;
+    setDrafting(true);
+    try {
+      const res = await fetch("/api/draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profileId: activeId,
+          itemId: open.id,
+          identifier: open.identifier,
+          title: open.title,
+          summary: open.summary,
+          businessLabel: board.label,
+        }),
+      });
+      const j = (await res.json().catch(() => null)) as { letter?: string; engine?: string; notice?: string } | null;
+      if (j?.letter) setDraft({ itemId: open.id, text: j.letter, engine: j.engine ?? "local", notice: j.notice });
+      else toast("Could not draft a letter");
+    } catch {
+      toast("Could not draft a letter");
+    } finally {
+      setDrafting(false);
+    }
+  }, [open, drafting, activeId, board.label, toast]);
+
   useEffect(() => {
     if (!openId && !modal) return;
     const onKey = (e: KeyboardEvent) => {
@@ -999,6 +1065,27 @@ export function AppView({ data }: { data: DashboardData }) {
                       <ExternalLink size={12} />
                     </a>
                   )}
+                  <div className="draft-row">
+                    <button className="draft-btn" onClick={makeDraft} disabled={drafting}>
+                      <PenLine size={13} /> {drafting ? "Drafting…" : draft?.itemId === open.id ? "Re-draft comment letter" : "Draft a comment letter"}
+                    </button>
+                  </div>
+                  {draft?.itemId === open.id && (
+                    <div className="draft-box">
+                      <div className="draft-head">
+                        <span className="chip sample">DRAFT · {draft.engine === "claude" ? "written by Claude" : "template"}</span>
+                        <button
+                          className="link-btn"
+                          onClick={() => { void navigator.clipboard?.writeText(draft.text); toast("Draft copied"); }}
+                        >
+                          <Copy size={12} style={{ verticalAlign: "-2px", marginRight: 3 }} />Copy
+                        </button>
+                      </div>
+                      {draft.notice && <div className="draft-notice">{draft.notice}</div>}
+                      <textarea className="draft-text" value={draft.text} onChange={(e) => setDraft({ ...draft, text: e.target.value })} rows={12} />
+                      <div className="fb-hint">Review, edit, and submit it yourself on the official portal — RedLine never sends anything for you.</div>
+                    </div>
+                  )}
                 </div>
 
                 {/* HISTORICAL PRECEDENT — sourced provenance framing, not invented */}
@@ -1032,6 +1119,28 @@ export function AppView({ data }: { data: DashboardData }) {
                       A cited memo is drafted for higher-priority items. The official source linked above has the full, authoritative text.
                     </p>
                   )}
+                </div>
+
+                {/* RELEVANCE FEEDBACK — 👍/👎 trains the filter (spec §8 feedback loop) */}
+                <div className="memo fb-block">
+                  <h4>Was this relevant to {board.label}?</h4>
+                  <div className="fb-row">
+                    <button
+                      className={"fb-btn" + (feedback[open.id] === "relevant" ? " up" : "")}
+                      onClick={() => sendFeedback(open.id, "relevant")}
+                      aria-pressed={feedback[open.id] === "relevant"}
+                    >
+                      <ThumbsUp size={14} /> Relevant
+                    </button>
+                    <button
+                      className={"fb-btn" + (feedback[open.id] === "not_relevant" ? " down" : "")}
+                      onClick={() => sendFeedback(open.id, "not_relevant")}
+                      aria-pressed={feedback[open.id] === "not_relevant"}
+                    >
+                      <ThumbsDown size={14} /> Not relevant
+                    </button>
+                  </div>
+                  <div className="fb-hint">Your feedback tunes what RedLine surfaces for you.</div>
                 </div>
               </div>
               <div className="pfoot">
