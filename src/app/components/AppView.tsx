@@ -106,9 +106,21 @@ interface LowRow {
   justification: string;
 }
 
+/** The raw onboarding form, kept per custom profile so Edit can re-populate it. */
+interface SavedForm {
+  name: string;
+  types: string[];
+  states: string[];
+  employees?: number;
+  foodRole: string | null;
+  context?: string;
+  attrs: Record<string, boolean>;
+}
+
 interface StoredCustom {
   profiles: ProfileSummary[];
   boards: Record<string, BoardData>;
+  forms?: Record<string, SavedForm>;
 }
 
 /* ---------- small hooks ---------- */
@@ -166,6 +178,7 @@ export function AppView({ data }: { data: DashboardData }) {
   const [freq, setFreq] = useState<"daily" | "weekly">("daily");
   const [customProfiles, setCustomProfiles] = useState<ProfileSummary[]>([]);
   const [customBoards, setCustomBoards] = useState<Record<string, BoardData>>({});
+  const [customForms, setCustomForms] = useState<Record<string, SavedForm>>({});
   const [sendingDigest, setSendingDigest] = useState(false);
   const [creating, setCreating] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -180,6 +193,8 @@ export function AppView({ data }: { data: DashboardData }) {
   const [fFoodRole, setFFoodRole] = useState("");
   const [fContext, setFContext] = useState("");
   const [stateQuery, setStateQuery] = useState("");
+  /** Set when the modal is editing an existing custom profile (else create). */
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   /* hydrate persisted custom profiles + marks AFTER mount (no SSR mismatch) */
   useEffect(() => {
@@ -190,6 +205,7 @@ export function AppView({ data }: { data: DashboardData }) {
         if (parsed && Array.isArray(parsed.profiles) && parsed.boards && typeof parsed.boards === "object") {
           setCustomProfiles(parsed.profiles);
           setCustomBoards(parsed.boards);
+          if (parsed.forms && typeof parsed.forms === "object") setCustomForms(parsed.forms);
         }
       }
     } catch {
@@ -210,11 +226,11 @@ export function AppView({ data }: { data: DashboardData }) {
   useEffect(() => {
     if (!hydrated) return;
     try {
-      localStorage.setItem(PROFILES_KEY, JSON.stringify({ profiles: customProfiles, boards: customBoards }));
+      localStorage.setItem(PROFILES_KEY, JSON.stringify({ profiles: customProfiles, boards: customBoards, forms: customForms }));
     } catch {
       /* storage full / unavailable - non-fatal */
     }
-  }, [hydrated, customProfiles, customBoards]);
+  }, [hydrated, customProfiles, customBoards, customForms]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -229,9 +245,11 @@ export function AppView({ data }: { data: DashboardData }) {
   const boards = useMemo(() => ({ ...data.boards, ...customBoards }), [data.boards, customBoards]);
   const profiles = useMemo(() => {
     // Dedupe: a persisted profile can come back from the server board on reload
-    // AND still live in localStorage, so show it once (the server copy wins).
-    const serverIds = new Set(data.profiles.map((p) => p.id));
-    return [...data.profiles, ...customProfiles.filter((p) => !serverIds.has(p.id))];
+    // AND still live in localStorage. Show it once, with the CLIENT copy winning
+    // so in-session edits (rename, re-score) appear immediately and the exact-cased
+    // label is preserved (the server board only re-reads on a full reload).
+    const customIds = new Set(customProfiles.map((p) => p.id));
+    return [...data.profiles.filter((p) => !customIds.has(p.id)), ...customProfiles];
   }, [data.profiles, customProfiles]);
   const fallbackBoard = data.boards[data.profiles[0]?.id ?? ""];
   const board: BoardData = boards[activeId] ?? fallbackBoard;
@@ -479,6 +497,41 @@ export function AppView({ data }: { data: DashboardData }) {
   const flip = (arr: string[], set: (v: string[]) => void, v: string) =>
     set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 
+  /** Clear the modal form back to a blank "add" state. */
+  const resetForm = useCallback(() => {
+    setFName("");
+    setFTypes([]);
+    setFAttrs({});
+    setFStates(["US"]);
+    setFEmployees("");
+    setFFoodRole("");
+    setFContext("");
+    setStateQuery("");
+    setEditingId(null);
+  }, []);
+
+  /** Open the modal pre-filled to EDIT an existing custom profile. */
+  const openEdit = useCallback(
+    (id: string) => {
+      const f = customForms[id];
+      if (!f) {
+        toast("This profile predates editing — remove and re-add it to edit.");
+        return;
+      }
+      setFName(f.name);
+      setFTypes(f.types);
+      setFAttrs(f.attrs ?? {});
+      setFStates(f.states?.length ? f.states : ["US"]);
+      setFEmployees(typeof f.employees === "number" ? String(f.employees) : "");
+      setFFoodRole(f.foodRole ?? "");
+      setFContext(f.context ?? "");
+      setStateQuery("");
+      setEditingId(id);
+      setModal(true);
+    },
+    [customForms, toast],
+  );
+
   const createProfile = useCallback(async () => {
     if (creating) return;
     if (!fName.trim() || fTypes.length === 0) {
@@ -486,29 +539,30 @@ export function AppView({ data }: { data: DashboardData }) {
       return;
     }
     setCreating(true);
+    const savedForm: SavedForm = {
+      name: fName.trim(),
+      types: fTypes,
+      states: fStates.length ? fStates : ["US"],
+      employees: fEmployees.trim() === "" ? undefined : Number(fEmployees),
+      foodRole: fFoodRole || null,
+      context: fContext.trim() || undefined,
+      attrs: {
+        has_w2: Boolean(fAttrs.has_w2),
+        contractors: Boolean(fAttrs.contractors),
+        sells_physical_goods: Boolean(fAttrs.sells_physical_goods),
+        subscription: Boolean(fAttrs.subscription),
+        marketplace: Boolean(fAttrs.marketplace),
+        imports: Boolean(fAttrs.imports),
+        serves_food: Boolean(fAttrs.serves_food),
+        online_data: Boolean(fAttrs.online_data),
+        children_data: Boolean(fAttrs.children_data),
+      },
+    };
     try {
       const res = await fetch("/api/profiles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: fName.trim(),
-          types: fTypes,
-          states: fStates.length ? fStates : ["US"],
-          employees: fEmployees.trim() === "" ? undefined : Number(fEmployees),
-          foodRole: fFoodRole || null,
-          context: fContext.trim() || undefined,
-          attrs: {
-            has_w2: Boolean(fAttrs.has_w2),
-            contractors: Boolean(fAttrs.contractors),
-            sells_physical_goods: Boolean(fAttrs.sells_physical_goods),
-            subscription: Boolean(fAttrs.subscription),
-            marketplace: Boolean(fAttrs.marketplace),
-            imports: Boolean(fAttrs.imports),
-            serves_food: Boolean(fAttrs.serves_food),
-            online_data: Boolean(fAttrs.online_data),
-            children_data: Boolean(fAttrs.children_data),
-          },
-        }),
+        body: JSON.stringify(editingId ? { id: editingId, ...savedForm } : savedForm),
       });
       const json = (await res.json().catch(() => null)) as
         | { profile?: ProfileSummary; board?: BoardData; error?: string; live?: boolean }
@@ -516,33 +570,36 @@ export function AppView({ data }: { data: DashboardData }) {
       if (res.ok && json?.profile && json.board) {
         const newProfile = json.profile;
         const newBoard = json.board;
-        setCustomProfiles((p) => [...p, newProfile]);
-        setCustomBoards((b) => ({ ...b, [newProfile.id]: newBoard }));
-        setActiveId(newProfile.id);
+        const rid = newProfile.id;
+        if (editingId) {
+          // Replace in place (keep switcher position); the id stays the same.
+          setCustomProfiles((p) => p.map((c) => (c.id === editingId ? newProfile : c)));
+        } else {
+          setCustomProfiles((p) => [...p, newProfile]);
+        }
+        setCustomBoards((b) => ({ ...b, [rid]: newBoard }));
+        setCustomForms((f) => ({ ...f, [rid]: savedForm }));
+        setActiveId(rid);
         setOpenId(null);
         setModal(false);
-        setFName("");
-        setFTypes([]);
-        setFAttrs({});
-        setFStates(["US"]);
-        setFEmployees("");
-        setFFoodRole("");
-        setFContext("");
-        setStateQuery("");
+        const wasEdit = Boolean(editingId);
+        resetForm();
         toast(
-          json.live
-            ? "Profile created - scored against live bills and rules for you"
-            : "Profile created - the engine just re-scored the board for you",
+          wasEdit
+            ? "Profile updated - the board just re-scored for your changes"
+            : json.live
+              ? "Profile created - scored against live bills and rules for you"
+              : "Profile created - the engine just re-scored the board for you",
         );
       } else {
-        toast(json?.error ?? "Could not create the profile - try again");
+        toast(json?.error ?? "Could not save the profile - try again");
       }
     } catch {
-      toast("Could not create the profile - network error");
+      toast("Could not save the profile - network error");
     } finally {
       setCreating(false);
     }
-  }, [creating, fName, fTypes, fStates, fAttrs, fEmployees, fFoodRole, fContext, toast]);
+  }, [creating, editingId, fName, fTypes, fStates, fAttrs, fEmployees, fFoodRole, fContext, resetForm, toast]);
 
   /** Remove a custom (user-added) profile. Client state + localStorage update via
    *  the persist effect; best-effort server soft-delete for DB-persisted ones. */
@@ -554,6 +611,11 @@ export function AppView({ data }: { data: DashboardData }) {
       setCustomProfiles((p) => p.filter((c) => c.id !== id));
       setCustomBoards((b) => {
         const next = { ...b };
+        delete next[id];
+        return next;
+      });
+      setCustomForms((f) => {
+        const next = { ...f };
         delete next[id];
         return next;
       });
@@ -617,11 +679,16 @@ export function AppView({ data }: { data: DashboardData }) {
                 );
               })}
             </div>
-            <button className="addpf" onClick={() => setModal(true)}><Plus size={14} /> Add your business</button>
+            <button className="addpf" onClick={() => { resetForm(); setModal(true); }}><Plus size={14} /> Add your business</button>
             {customProfiles.some((c) => c.id === activeId) && (
-              <button className="removepf" onClick={() => removeProfile(activeId)} title="Remove this business">
-                <X size={13} /> Remove
-              </button>
+              <>
+                <button className="removepf" onClick={() => openEdit(activeId)} title="Edit this business">
+                  <PenLine size={13} /> Edit
+                </button>
+                <button className="removepf" onClick={() => removeProfile(activeId)} title="Remove this business">
+                  <X size={13} /> Remove
+                </button>
+              </>
             )}
           </div>
 
@@ -1162,21 +1229,21 @@ export function AppView({ data }: { data: DashboardData }) {
         )}
       </div>
 
-      {/* "Add your business" modal */}
+      {/* "Add your business" / "Edit business" modal */}
       {modal && (
         <div className="modal">
-          <div className="scrim" onClick={() => setModal(false)} />
-          <div className="mbox" role="dialog" aria-modal="true" aria-label="Add your business" style={{ position: "relative", zIndex: 95 }}>
+          <div className="scrim" onClick={() => { setModal(false); resetForm(); }} />
+          <div className="mbox" role="dialog" aria-modal="true" aria-label={editingId ? "Edit business" : "Add your business"} style={{ position: "relative", zIndex: 95 }}>
             <div className="mhead">
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <Sparkles size={18} color="var(--accent)" />
-                <b style={{ fontSize: 17 }}>Add your business</b>
-                <button className="pclose" style={{ position: "static", marginLeft: "auto" }} onClick={() => setModal(false)} aria-label="Close"><X size={15} /></button>
+                {editingId ? <PenLine size={18} color="var(--accent)" /> : <Sparkles size={18} color="var(--accent)" />}
+                <b style={{ fontSize: 17 }}>{editingId ? "Edit business" : "Add your business"}</b>
+                <button className="pclose" style={{ position: "static", marginLeft: "auto" }} onClick={() => { setModal(false); resetForm(); }} aria-label="Close"><X size={15} /></button>
               </div>
               <p style={{ fontSize: 13, color: "var(--muted)", margin: "8px 0 0", lineHeight: 1.55 }}>
-                Tell us what you do and where. Every answer becomes a real scoring input - the engine
-                re-scores the board against live bills and rules the moment you save. Only the name and
-                one business type are required; the rest sharpens what surfaces.
+                {editingId
+                  ? "Update what you do and where — the engine re-scores the board against live bills and rules the moment you save."
+                  : "Tell us what you do and where. Every answer becomes a real scoring input - the engine re-scores the board against live bills and rules the moment you save. Only the name and one business type are required; the rest sharpens what surfaces."}
               </p>
             </div>
             <div className="mbody">
@@ -1308,7 +1375,7 @@ export function AppView({ data }: { data: DashboardData }) {
                 onClick={createProfile}
                 disabled={creating}
               >
-                {creating ? "Scoring your board…" : <>Create profile & score against live data <ArrowRight size={15} /></>}
+                {creating ? "Scoring your board…" : editingId ? <>Save changes &amp; re-score <ArrowRight size={15} /></> : <>Create profile &amp; score against live data <ArrowRight size={15} /></>}
               </button>
             </div>
           </div>

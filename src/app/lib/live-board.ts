@@ -539,3 +539,43 @@ export async function persistNewProfile(
     client.release();
   }
 }
+
+/**
+ * Update an EXISTING org_profiles row in place (edit-your-business). Re-writes the
+ * derived fields (types/jurisdictions/attributes/categories/concern_text/embedding)
+ * so the re-scored board reflects the edits. Returns the org/profile ids, or null
+ * when the id doesn't match a row (client-only profile) or the DB is unreachable.
+ */
+export async function updateProfile(
+  profileId: string,
+  profile: BusinessProfile,
+  businessName?: string,
+): Promise<{ orgId: string; profileId: string } | null> {
+  const pool = getPool();
+  const emb =
+    profile.embedding && profile.embedding.length ? `[${profile.embedding.join(",")}]` : null;
+  const res = await pool.query<{ org_id: string }>(
+    `UPDATE org_profiles
+        SET business_types = $2, jurisdictions = $3, attributes = $4::jsonb,
+            subscribed_categories = $5, concern_text = $6, embedding = $7::vector
+      WHERE id = $1 AND is_active = true
+      RETURNING org_id`,
+    [
+      profileId,
+      profile.business_types,
+      profile.jurisdictions,
+      JSON.stringify(profile.attributes ?? {}),
+      profile.subscribed_categories,
+      profile.concern_text,
+      emb,
+    ],
+  );
+  const orgId = res.rows[0]?.org_id;
+  if (!orgId) return null;
+  // Keep the org name in sync so the rename survives a reload (the live board
+  // derives the label from the org name, not the in-session form).
+  if (businessName) {
+    await pool.query(`UPDATE organizations SET name = $2 WHERE id = $1`, [orgId, slugifyName(businessName)]);
+  }
+  return { orgId, profileId };
+}
